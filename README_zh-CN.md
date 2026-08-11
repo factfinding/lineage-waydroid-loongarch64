@@ -4,8 +4,10 @@
 
 本仓库是 LineageOS 23.2 / Android 16 移植到 LoongArch64 Waydroid 的源码入口。
 
-> [!WARNING]
-> 当前公开的是开发中源码，尚未创建可复现的正式版本标签。在公开源码结构整理完成前，开发分支仍可能变化。
+`v0.2.2` 是首个带版本标签的公开源码快照。`projects.tsv` 记录了该快照使用的各项目精确提交及源码树；兼容性与性能工作会继续在开发分支中推进。
+
+> [!NOTE]
+> 从零开始完成公开构建仍需要构建说明中提到、尚未发布的 Clang 21 与 Rust 1.88 引导产物。
 
 当前系统已经能在 AOSC OS LoongArch64 主机上启动至 `sys.boot_completed=1`。原生 LoongArch64 ART、bionic、WebView、音频、网络和 Mesa 图形栈均经过运行验证。ARM64 应用原生库通过 LoongArch64 Berberis Native Bridge 运行，兼容性和转译性能仍在持续开发。
 

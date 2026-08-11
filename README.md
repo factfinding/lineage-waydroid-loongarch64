@@ -4,8 +4,10 @@
 
 This repository is the source entry point for the ongoing LineageOS 23.2 / Android 16 port to Waydroid on LoongArch64.
 
-> [!WARNING]
-> This is development source. No reproducible release has been tagged yet. Branches may change while the public source layout is being completed.
+`v0.2.2` is the first versioned public source snapshot. `projects.tsv` records the exact project commits and source trees used by the snapshot. Compatibility and performance work continues on the development branches.
+
+> [!NOTE]
+> A clean end-to-end public build still requires the unpublished Clang 21 and Rust 1.88 bootstrap artifacts described in the build guide.
 
 The current system boots to `sys.boot_completed=1` on an AOSC OS LoongArch64 host. Native LoongArch64 ART, bionic, WebView, audio, networking and Mesa graphics have been validated. ARM64 application libraries run through the LoongArch64 Berberis Native Bridge; compatibility and translation performance remain active development areas.
 
