@@ -19,6 +19,7 @@ The current system boots to `sys.boot_completed=1` on an AOSC OS LoongArch64 hos
 - Large Clang, Rust, VNDK and WebView build artifacts are intentionally not stored in Git history.
 - LLVM 21 and Rust 1.88 source changes and recorded build inputs are documented under [`toolchains/`](toolchains/README.md).
 - `projects.tsv` records the source path, publication mode, source location and exact development commit.
+- The coordinated source-tag and component-tag policy is documented in [`docs/VERSIONING.md`](docs/VERSIONING.md).
 
 The source stack is:
 

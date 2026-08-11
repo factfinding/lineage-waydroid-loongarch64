@@ -14,16 +14,19 @@ Clone this repository next to, or anywhere outside, the Android source tree:
 
 ```bash
 git clone https://github.com/factfinding/lineage-waydroid-loongarch64.git
+cd lineage-waydroid-loongarch64
+git checkout v0.2.2
+cd ..
 ```
 
 ## 2. Install manifests and sync
 
 ```bash
-../lineage-waydroid-loongarch64/scripts/install-local-manifests.sh "$PWD"
+../lineage-waydroid-loongarch64/scripts/install-local-manifests.sh "$PWD" v0.2.2
 repo sync -c -j8
 ```
 
-Projects published as GitHub forks are selected by `03-loongarch64.xml`. Projects for which no exact GitHub mirror exists remain on their canonical AOSP revision.
+Projects published as GitHub forks are selected by `03-loongarch64.xml`. Supplying the release tag pins them to the matching coordinated tags. Projects for which no exact GitHub mirror exists remain on their canonical AOSP revision and receive the recorded patch queues.
 
 ## 3. Apply AOSP patch queues
 

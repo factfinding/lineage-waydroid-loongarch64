@@ -19,6 +19,7 @@
 - Clang、Rust、VNDK 和 WebView 等大型构建产物不进入普通 Git 历史。
 - LLVM 21 与 Rust 1.88 的源码修改和已有构建输入记录在 [`toolchains/`](toolchains/README.md)。
 - `projects.tsv` 记录每个项目的源码路径、发布方式、来源和当前精确提交。
+- 统一源码标签与各组件标签的规则见 [`docs/VERSIONING.md`](docs/VERSIONING.md)。
 
 源码关系如下：
 

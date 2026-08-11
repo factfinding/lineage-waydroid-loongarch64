@@ -1,0 +1,4 @@
+# component	source	tag	commit
+chromium-webview	factfinding/chromium	v0.2.2	73b3d61f832092ad0ce92cf367557bae6f862ac0
+waydroid-host	factfinding/waydroid	loongarch64-1.6.3-rel2	1dd74506aa85ac0a8dab72c985b3e35b83b5efb5
+aosc-lxc	factfinding/aosc-os-abbs	lxc-7.0.0-1-loongarch64	6f5a73733b47aa1a9f8eeae5713d49e3245e8d4b
