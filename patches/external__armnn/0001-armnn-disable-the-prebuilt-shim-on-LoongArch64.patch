@@ -1,0 +1,27 @@
+From 1b6c932226af722dbf8a220dd0ccb1f72acf7675 Mon Sep 17 00:00:00 2001
+From: noctis <970308389@qq.com>
+Date: Sat, 1 Aug 2026 14:36:10 +0800
+Subject: [PATCH] armnn: disable the prebuilt shim on LoongArch64
+
+Change-Id: I1fc308b1476780484841934492d4d264f5a60632
+---
+ shim/Android.bp | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/shim/Android.bp b/shim/Android.bp
+index d71794453..18fd1d2ab 100644
+--- a/shim/Android.bp
++++ b/shim/Android.bp
+@@ -102,6 +102,9 @@ cc_prebuilt_library_shared {
+         android_riscv64: {
+             enabled: false,
+         },
++        android_loongarch64: {
++            enabled: false,
++        },
+         android_arm64: {
+             srcs: ["sl/build/android_arm64/libarmnn_support_library_prebuilt.so"],
+         },
+-- 
+2.43.0
+

@@ -1,0 +1,46 @@
+From edff87dac909b57c7d0592e1f2f812b14f6327d4 Mon Sep 17 00:00:00 2001
+From: noctis <970308389@qq.com>
+Date: Sat, 1 Aug 2026 14:36:10 +0800
+Subject: [PATCH] cts: identify LoongArch64 native test libraries
+
+Change-Id: Ibbdbb580816976d4c195204e5816eb91e1d33a75
+---
+ hostsidetests/appsecurity/test-apps/SplitApp/jni/Android.bp | 5 +++++
+ tests/tests/content/MultiArchApp/Android.bp                 | 5 +++++
+ 2 files changed, 10 insertions(+)
+
+diff --git a/hostsidetests/appsecurity/test-apps/SplitApp/jni/Android.bp b/hostsidetests/appsecurity/test-apps/SplitApp/jni/Android.bp
+index 912208ac1c6..bd59ba0c7ab 100644
+--- a/hostsidetests/appsecurity/test-apps/SplitApp/jni/Android.bp
++++ b/hostsidetests/appsecurity/test-apps/SplitApp/jni/Android.bp
+@@ -53,6 +53,11 @@ cc_defaults {
+                 "-D__ANDROID_ARCH__=\"riscv64\"",
+             ],
+         },
++        android_loongarch64: {
++            cflags: [
++                "-D__ANDROID_ARCH__=\"loongarch64\"",
++            ],
++        },
+     },
+     sdk_version: "current",
+ }
+diff --git a/tests/tests/content/MultiArchApp/Android.bp b/tests/tests/content/MultiArchApp/Android.bp
+index d708550bfd6..ec5203a2228 100644
+--- a/tests/tests/content/MultiArchApp/Android.bp
++++ b/tests/tests/content/MultiArchApp/Android.bp
+@@ -55,6 +55,11 @@ cc_test_library {
+                 "-D__ANDROID_ARCH__=\"riscv64\"",
+             ],
+         },
++        android_loongarch64: {
++            cflags: [
++                "-D__ANDROID_ARCH__=\"loongarch64\"",
++            ],
++        },
+     },
+ }
+ 
+-- 
+2.43.0
+

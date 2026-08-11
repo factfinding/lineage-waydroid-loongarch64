@@ -1,0 +1,28 @@
+From d993b92a021b0f8deae15316b16388645bf34ec2 Mon Sep 17 00:00:00 2001
+From: noctis <970308389@qq.com>
+Date: Tue, 4 Aug 2026 13:42:30 +0800
+Subject: [PATCH 2/2] boringssl: enable getrandom on LoongArch64
+
+LoongArch64 uses the generic Linux getrandom syscall number 278. Without this mapping, the FIPS entropy implementation falls back to an unconditional abort during Conscrypt initialization.
+
+Change-Id: I5b72be27092900aefd426eb424087ff40d339cc1
+---
+ src/crypto/rand/getrandom_fillin.h | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/src/crypto/rand/getrandom_fillin.h b/src/crypto/rand/getrandom_fillin.h
+index daaba2aa..e1a2127b 100644
+--- a/src/crypto/rand/getrandom_fillin.h
++++ b/src/crypto/rand/getrandom_fillin.h
+@@ -32,6 +32,8 @@
+ #define EXPECTED_NR_getrandom 384
+ #elif defined(OPENSSL_RISCV64)
+ #define EXPECTED_NR_getrandom 278
++#elif defined(OPENSSL_LOONGARCH64)
++#define EXPECTED_NR_getrandom 278
+ #endif
+ 
+ #if defined(EXPECTED_NR_getrandom)
+-- 
+2.43.0
+

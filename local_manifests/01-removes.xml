@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<manifest>
+  <remove-project name="platform/external/drm_hwcomposer" />
+  <remove-project name="platform/external/gmmlib" />
+  <remove-project name="platform/external/libdrm" />
+  <remove-project name="platform/external/libva" />
+  <remove-project name="platform/external/libva-utils" />
+  <remove-project name="platform/external/mesa3d" />
+  <remove-project name="platform/external/minigbm" />
+  <remove-project name="platform/external/rust/android-crates-io" />
+  <remove-project name="platform/external/rust/ninja-to-soong" />
+  <remove-project name="platform/prebuilts/vndk/v34" />
+  <remove-project name="LineageOS/android_packages_apps_TvSettings" />
+</manifest>

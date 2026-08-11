@@ -1,0 +1,27 @@
+From 3dea84d8e7f687aa38214e54766115c3958534b0 Mon Sep 17 00:00:00 2001
+From: noctis <970308389@qq.com>
+Date: Tue, 4 Aug 2026 14:24:11 +0800
+Subject: [PATCH 1/2] libcore: map the LoongArch64 ABI to its ISA
+
+Teach VMRuntime that the lp64d ABI uses the loongarch64 instruction set so PackageManager can derive native library paths during system_server startup.
+
+Change-Id: Ia41054b724557c515a6a2890cb2e75392933b3f3
+---
+ libart/src/main/java/dalvik/system/VMRuntime.java | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/libart/src/main/java/dalvik/system/VMRuntime.java b/libart/src/main/java/dalvik/system/VMRuntime.java
+index 50cd445b72f..aaf475f31f6 100644
+--- a/libart/src/main/java/dalvik/system/VMRuntime.java
++++ b/libart/src/main/java/dalvik/system/VMRuntime.java
+@@ -71,6 +71,7 @@ public final class VMRuntime {
+         ABI_TO_INSTRUCTION_SET_MAP.put("arm64-v8a", "arm64");
+         ABI_TO_INSTRUCTION_SET_MAP.put("arm64-v8a-hwasan", "arm64");
+         ABI_TO_INSTRUCTION_SET_MAP.put("riscv64", "riscv64");
++        ABI_TO_INSTRUCTION_SET_MAP.put("lp64d", "loongarch64");
+     }
+ 
+     /**
+-- 
+2.43.0
+

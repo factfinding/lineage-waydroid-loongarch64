@@ -1,0 +1,1250 @@
+From e3c2c4c36591bfe2a21d6dd07c5ce5ed8121698b Mon Sep 17 00:00:00 2001
+From: noctis <970308389@qq.com>
+Date: Sun, 19 Jul 2026 11:01:23 +0800
+Subject: [PATCH] kernel-headers: import LoongArch UAPI headers
+
+Change-Id: I0398f167ec4a594c47c427396cbd8657f8938b00
+---
+ original/uapi/asm-loongarch/asm/auxvec.h      |  17 +
+ original/uapi/asm-loongarch/asm/bitsperlong.h |   1 +
+ .../uapi/asm-loongarch/asm/bpf_perf_event.h   |   9 +
+ original/uapi/asm-loongarch/asm/break.h       |  23 ++
+ original/uapi/asm-loongarch/asm/byteorder.h   |  13 +
+ original/uapi/asm-loongarch/asm/errno.h       |   1 +
+ original/uapi/asm-loongarch/asm/fcntl.h       |   1 +
+ original/uapi/asm-loongarch/asm/hwcap.h       |  22 ++
+ original/uapi/asm-loongarch/asm/ioctl.h       |   1 +
+ original/uapi/asm-loongarch/asm/ioctls.h      |   1 +
+ original/uapi/asm-loongarch/asm/ipcbuf.h      |   1 +
+ original/uapi/asm-loongarch/asm/kvm.h         | 156 +++++++++
+ original/uapi/asm-loongarch/asm/kvm_para.h    |  22 ++
+ original/uapi/asm-loongarch/asm/mman.h        |   1 +
+ original/uapi/asm-loongarch/asm/msgbuf.h      |   1 +
+ original/uapi/asm-loongarch/asm/param.h       |   1 +
+ original/uapi/asm-loongarch/asm/perf_regs.h   |  40 +++
+ original/uapi/asm-loongarch/asm/poll.h        |   1 +
+ original/uapi/asm-loongarch/asm/posix_types.h |   1 +
+ original/uapi/asm-loongarch/asm/ptrace.h      |  84 +++++
+ original/uapi/asm-loongarch/asm/reg.h         |  59 ++++
+ original/uapi/asm-loongarch/asm/resource.h    |   1 +
+ original/uapi/asm-loongarch/asm/sembuf.h      |   1 +
+ original/uapi/asm-loongarch/asm/setup.h       |   8 +
+ original/uapi/asm-loongarch/asm/shmbuf.h      |   1 +
+ original/uapi/asm-loongarch/asm/sigcontext.h  |  71 ++++
+ original/uapi/asm-loongarch/asm/siginfo.h     |   1 +
+ original/uapi/asm-loongarch/asm/signal.h      |  13 +
+ original/uapi/asm-loongarch/asm/socket.h      |   1 +
+ original/uapi/asm-loongarch/asm/sockios.h     |   1 +
+ original/uapi/asm-loongarch/asm/stat.h        |   1 +
+ original/uapi/asm-loongarch/asm/statfs.h      |   1 +
+ original/uapi/asm-loongarch/asm/swab.h        |   1 +
+ original/uapi/asm-loongarch/asm/termbits.h    |   1 +
+ original/uapi/asm-loongarch/asm/termios.h     |   1 +
+ original/uapi/asm-loongarch/asm/types.h       |   1 +
+ original/uapi/asm-loongarch/asm/ucontext.h    |  35 ++
+ original/uapi/asm-loongarch/asm/unistd.h      |   3 +
+ original/uapi/asm-loongarch/asm/unistd_64.h   | 328 ++++++++++++++++++
+ 39 files changed, 926 insertions(+)
+ create mode 100644 original/uapi/asm-loongarch/asm/auxvec.h
+ create mode 100644 original/uapi/asm-loongarch/asm/bitsperlong.h
+ create mode 100644 original/uapi/asm-loongarch/asm/bpf_perf_event.h
+ create mode 100644 original/uapi/asm-loongarch/asm/break.h
+ create mode 100644 original/uapi/asm-loongarch/asm/byteorder.h
+ create mode 100644 original/uapi/asm-loongarch/asm/errno.h
+ create mode 100644 original/uapi/asm-loongarch/asm/fcntl.h
+ create mode 100644 original/uapi/asm-loongarch/asm/hwcap.h
+ create mode 100644 original/uapi/asm-loongarch/asm/ioctl.h
+ create mode 100644 original/uapi/asm-loongarch/asm/ioctls.h
+ create mode 100644 original/uapi/asm-loongarch/asm/ipcbuf.h
+ create mode 100644 original/uapi/asm-loongarch/asm/kvm.h
+ create mode 100644 original/uapi/asm-loongarch/asm/kvm_para.h
+ create mode 100644 original/uapi/asm-loongarch/asm/mman.h
+ create mode 100644 original/uapi/asm-loongarch/asm/msgbuf.h
+ create mode 100644 original/uapi/asm-loongarch/asm/param.h
+ create mode 100644 original/uapi/asm-loongarch/asm/perf_regs.h
+ create mode 100644 original/uapi/asm-loongarch/asm/poll.h
+ create mode 100644 original/uapi/asm-loongarch/asm/posix_types.h
+ create mode 100644 original/uapi/asm-loongarch/asm/ptrace.h
+ create mode 100644 original/uapi/asm-loongarch/asm/reg.h
+ create mode 100644 original/uapi/asm-loongarch/asm/resource.h
+ create mode 100644 original/uapi/asm-loongarch/asm/sembuf.h
+ create mode 100644 original/uapi/asm-loongarch/asm/setup.h
+ create mode 100644 original/uapi/asm-loongarch/asm/shmbuf.h
+ create mode 100644 original/uapi/asm-loongarch/asm/sigcontext.h
+ create mode 100644 original/uapi/asm-loongarch/asm/siginfo.h
+ create mode 100644 original/uapi/asm-loongarch/asm/signal.h
+ create mode 100644 original/uapi/asm-loongarch/asm/socket.h
+ create mode 100644 original/uapi/asm-loongarch/asm/sockios.h
+ create mode 100644 original/uapi/asm-loongarch/asm/stat.h
+ create mode 100644 original/uapi/asm-loongarch/asm/statfs.h
+ create mode 100644 original/uapi/asm-loongarch/asm/swab.h
+ create mode 100644 original/uapi/asm-loongarch/asm/termbits.h
+ create mode 100644 original/uapi/asm-loongarch/asm/termios.h
+ create mode 100644 original/uapi/asm-loongarch/asm/types.h
+ create mode 100644 original/uapi/asm-loongarch/asm/ucontext.h
+ create mode 100644 original/uapi/asm-loongarch/asm/unistd.h
+ create mode 100644 original/uapi/asm-loongarch/asm/unistd_64.h
+
+diff --git a/original/uapi/asm-loongarch/asm/auxvec.h b/original/uapi/asm-loongarch/asm/auxvec.h
+new file mode 100644
+index 0000000..922d9e6
+--- /dev/null
++++ b/original/uapi/asm-loongarch/asm/auxvec.h
+@@ -0,0 +1,17 @@
++/* SPDX-License-Identifier: GPL-2.0+ WITH Linux-syscall-note */
++/*
++ * Author: Hanlu Li <lihanlu@loongson.cn>
++ *         Huacai Chen <chenhuacai@loongson.cn>
++ *
++ * Copyright (C) 2020-2022 Loongson Technology Corporation Limited
++ */
++
++#ifndef __ASM_AUXVEC_H
++#define __ASM_AUXVEC_H
++
++/* Location of VDSO image. */
++#define AT_SYSINFO_EHDR		33
++
++#define AT_VECTOR_SIZE_ARCH 1 /* entries in ARCH_DLINFO */
++
++#endif /* __ASM_AUXVEC_H */
+diff --git a/original/uapi/asm-loongarch/asm/bitsperlong.h b/original/uapi/asm-loongarch/asm/bitsperlong.h
+new file mode 100644
+index 0000000..6dc0bb0
+--- /dev/null
++++ b/original/uapi/asm-loongarch/asm/bitsperlong.h
+@@ -0,0 +1 @@
++#include <asm-generic/bitsperlong.h>
+diff --git a/original/uapi/asm-loongarch/asm/bpf_perf_event.h b/original/uapi/asm-loongarch/asm/bpf_perf_event.h
+new file mode 100644
+index 0000000..fcba2e0
+--- /dev/null
++++ b/original/uapi/asm-loongarch/asm/bpf_perf_event.h
+@@ -0,0 +1,9 @@
++/* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
++#ifndef __ASM_BPF_PERF_EVENT_H__
++#define __ASM_BPF_PERF_EVENT_H__
++
++#include <linux/ptrace.h>
++
++typedef struct user_pt_regs bpf_user_pt_regs_t;
++
++#endif /* __ASM_BPF_PERF_EVENT_H__ */
+diff --git a/original/uapi/asm-loongarch/asm/break.h b/original/uapi/asm-loongarch/asm/break.h
+new file mode 100644
+index 0000000..bb9b82b
+--- /dev/null
++++ b/original/uapi/asm-loongarch/asm/break.h
+@@ -0,0 +1,23 @@
++/* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
++/*
++ * Copyright (C) 2020-2022 Loongson Technology Corporation Limited
++ */
++#ifndef __UAPI_ASM_BREAK_H
++#define __UAPI_ASM_BREAK_H
++
++#define BRK_DEFAULT		0	/* Used as default */
++#define BRK_BUG			1	/* Used by BUG() */
++#define BRK_KDB			2	/* Used in KDB_ENTER() */
++#define BRK_MATHEMU		3	/* Used by FPU emulator */
++#define BRK_USERBP		4	/* User bp (used by debuggers) */
++#define BRK_SSTEPBP		5	/* User bp (used by debuggers) */
++#define BRK_OVERFLOW		6	/* Overflow check */
++#define BRK_DIVZERO		7	/* Divide by zero check */
++#define BRK_RANGE		8	/* Range error check */
++#define BRK_MULOVFL		9	/* Multiply overflow */
++#define BRK_KPROBE_BP		10	/* Kprobe break */
++#define BRK_KPROBE_SSTEPBP	11	/* Kprobe single step break */
++#define BRK_UPROBE_BP		12	/* See <asm/uprobes.h> */
++#define BRK_UPROBE_XOLBP	13	/* See <asm/uprobes.h> */
++
++#endif /* __UAPI_ASM_BREAK_H */
+diff --git a/original/uapi/asm-loongarch/asm/byteorder.h b/original/uapi/asm-loongarch/asm/byteorder.h
+new file mode 100644
+index 0000000..b1722d8
+--- /dev/null
++++ b/original/uapi/asm-loongarch/asm/byteorder.h
+@@ -0,0 +1,13 @@
++/* SPDX-License-Identifier: GPL-2.0+ WITH Linux-syscall-note */
++/*
++ * Author: Hanlu Li <lihanlu@loongson.cn>
++ *         Huacai Chen <chenhuacai@loongson.cn>
++ *
++ * Copyright (C) 2020-2022 Loongson Technology Corporation Limited
++ */
++#ifndef _ASM_BYTEORDER_H
++#define _ASM_BYTEORDER_H
++
++#include <linux/byteorder/little_endian.h>
++
++#endif /* _ASM_BYTEORDER_H */
+diff --git a/original/uapi/asm-loongarch/asm/errno.h b/original/uapi/asm-loongarch/asm/errno.h
+new file mode 100644
+index 0000000..4c82b50
+--- /dev/null
++++ b/original/uapi/asm-loongarch/asm/errno.h
+@@ -0,0 +1 @@
++#include <asm-generic/errno.h>
+diff --git a/original/uapi/asm-loongarch/asm/fcntl.h b/original/uapi/asm-loongarch/asm/fcntl.h
+new file mode 100644
+index 0000000..46ab12d
+--- /dev/null
++++ b/original/uapi/asm-loongarch/asm/fcntl.h
+@@ -0,0 +1 @@
++#include <asm-generic/fcntl.h>
+diff --git a/original/uapi/asm-loongarch/asm/hwcap.h b/original/uapi/asm-loongarch/asm/hwcap.h
+new file mode 100644
+index 0000000..6749629
+--- /dev/null
++++ b/original/uapi/asm-loongarch/asm/hwcap.h
+@@ -0,0 +1,22 @@
++/* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
++#ifndef _ASM_HWCAP_H
++#define _ASM_HWCAP_H
++
++/* HWCAP flags */
++#define HWCAP_LOONGARCH_CPUCFG		(1 << 0)
++#define HWCAP_LOONGARCH_LAM		(1 << 1)
++#define HWCAP_LOONGARCH_UAL		(1 << 2)
++#define HWCAP_LOONGARCH_FPU		(1 << 3)
++#define HWCAP_LOONGARCH_LSX		(1 << 4)
++#define HWCAP_LOONGARCH_LASX		(1 << 5)
++#define HWCAP_LOONGARCH_CRC32		(1 << 6)
++#define HWCAP_LOONGARCH_COMPLEX		(1 << 7)
++#define HWCAP_LOONGARCH_CRYPTO		(1 << 8)
++#define HWCAP_LOONGARCH_LVZ		(1 << 9)
++#define HWCAP_LOONGARCH_LBT_X86		(1 << 10)
++#define HWCAP_LOONGARCH_LBT_ARM		(1 << 11)
++#define HWCAP_LOONGARCH_LBT_MIPS	(1 << 12)
++#define HWCAP_LOONGARCH_PTW		(1 << 13)
++#define HWCAP_LOONGARCH_LSPW		(1 << 14)
++
++#endif /* _ASM_HWCAP_H */
+diff --git a/original/uapi/asm-loongarch/asm/ioctl.h b/original/uapi/asm-loongarch/asm/ioctl.h
+new file mode 100644
+index 0000000..b279fe0
+--- /dev/null
++++ b/original/uapi/asm-loongarch/asm/ioctl.h
+@@ -0,0 +1 @@
++#include <asm-generic/ioctl.h>
+diff --git a/original/uapi/asm-loongarch/asm/ioctls.h b/original/uapi/asm-loongarch/asm/ioctls.h
+new file mode 100644
+index 0000000..ec34c76
+--- /dev/null
++++ b/original/uapi/asm-loongarch/asm/ioctls.h
+@@ -0,0 +1 @@
++#include <asm-generic/ioctls.h>
+diff --git a/original/uapi/asm-loongarch/asm/ipcbuf.h b/original/uapi/asm-loongarch/asm/ipcbuf.h
+new file mode 100644
+index 0000000..84c7e51
+--- /dev/null
++++ b/original/uapi/asm-loongarch/asm/ipcbuf.h
+@@ -0,0 +1 @@
++#include <asm-generic/ipcbuf.h>
+diff --git a/original/uapi/asm-loongarch/asm/kvm.h b/original/uapi/asm-loongarch/asm/kvm.h
+new file mode 100644
+index 0000000..57ba1a5
+--- /dev/null
++++ b/original/uapi/asm-loongarch/asm/kvm.h
+@@ -0,0 +1,156 @@
++/* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
++/*
++ * Copyright (C) 2020-2023 Loongson Technology Corporation Limited
++ */
++
++#ifndef __UAPI_ASM_LOONGARCH_KVM_H
++#define __UAPI_ASM_LOONGARCH_KVM_H
++
++#include <linux/types.h>
++
++#define __KVM_HAVE_IRQ_LINE
++
++/*
++ * KVM LoongArch specific structures and definitions.
++ *
++ * Some parts derived from the x86 version of this file.
++ */
++
++#define KVM_COALESCED_MMIO_PAGE_OFFSET	1
++#define KVM_DIRTY_LOG_PAGE_OFFSET	64
++
++#define KVM_GUESTDBG_USE_SW_BP		0x00010000
++
++/*
++ * for KVM_GET_REGS and KVM_SET_REGS
++ */
++struct kvm_regs {
++	/* out (KVM_GET_REGS) / in (KVM_SET_REGS) */
++	__u64 gpr[32];
++	__u64 pc;
++};
++
++/*
++ * for KVM_GET_FPU and KVM_SET_FPU
++ */
++struct kvm_fpu {
++	__u32 fcsr;
++	__u64 fcc;    /* 8x8 */
++	struct kvm_fpureg {
++		__u64 val64[4];
++	} fpr[32];
++};
++
++/*
++ * For LoongArch, we use KVM_SET_ONE_REG and KVM_GET_ONE_REG to access various
++ * registers.  The id field is broken down as follows:
++ *
++ *  bits[63..52] - As per linux/kvm.h
++ *  bits[51..32] - Must be zero.
++ *  bits[31..16] - Register set.
++ *
++ * Register set = 0: GP registers from kvm_regs (see definitions below).
++ *
++ * Register set = 1: CSR registers.
++ *
++ * Register set = 2: KVM specific registers (see definitions below).
++ *
++ * Register set = 3: FPU / SIMD registers (see definitions below).
++ *
++ * Other sets registers may be added in the future.  Each set would
++ * have its own identifier in bits[31..16].
++ */
++
++#define KVM_REG_LOONGARCH_GPR		(KVM_REG_LOONGARCH | 0x00000ULL)
++#define KVM_REG_LOONGARCH_CSR		(KVM_REG_LOONGARCH | 0x10000ULL)
++#define KVM_REG_LOONGARCH_KVM		(KVM_REG_LOONGARCH | 0x20000ULL)
++#define KVM_REG_LOONGARCH_FPSIMD	(KVM_REG_LOONGARCH | 0x30000ULL)
++#define KVM_REG_LOONGARCH_CPUCFG	(KVM_REG_LOONGARCH | 0x40000ULL)
++#define KVM_REG_LOONGARCH_LBT		(KVM_REG_LOONGARCH | 0x50000ULL)
++#define KVM_REG_LOONGARCH_MASK		(KVM_REG_LOONGARCH | 0x70000ULL)
++#define KVM_CSR_IDX_MASK		0x7fff
++#define KVM_CPUCFG_IDX_MASK		0x7fff
++
++/*
++ * KVM_REG_LOONGARCH_KVM - KVM specific control registers.
++ */
++
++#define KVM_REG_LOONGARCH_COUNTER	(KVM_REG_LOONGARCH_KVM | KVM_REG_SIZE_U64 | 1)
++#define KVM_REG_LOONGARCH_VCPU_RESET	(KVM_REG_LOONGARCH_KVM | KVM_REG_SIZE_U64 | 2)
++/* Debugging: Special instruction for software breakpoint */
++#define KVM_REG_LOONGARCH_DEBUG_INST	(KVM_REG_LOONGARCH_KVM | KVM_REG_SIZE_U64 | 3)
++
++/* LBT registers */
++#define KVM_REG_LOONGARCH_LBT_SCR0	(KVM_REG_LOONGARCH_LBT | KVM_REG_SIZE_U64 | 1)
++#define KVM_REG_LOONGARCH_LBT_SCR1	(KVM_REG_LOONGARCH_LBT | KVM_REG_SIZE_U64 | 2)
++#define KVM_REG_LOONGARCH_LBT_SCR2	(KVM_REG_LOONGARCH_LBT | KVM_REG_SIZE_U64 | 3)
++#define KVM_REG_LOONGARCH_LBT_SCR3	(KVM_REG_LOONGARCH_LBT | KVM_REG_SIZE_U64 | 4)
++#define KVM_REG_LOONGARCH_LBT_EFLAGS	(KVM_REG_LOONGARCH_LBT | KVM_REG_SIZE_U64 | 5)
++#define KVM_REG_LOONGARCH_LBT_FTOP	(KVM_REG_LOONGARCH_LBT | KVM_REG_SIZE_U64 | 6)
++
++#define LOONGARCH_REG_SHIFT		3
++#define LOONGARCH_REG_64(TYPE, REG)	(TYPE | KVM_REG_SIZE_U64 | (REG << LOONGARCH_REG_SHIFT))
++#define KVM_IOC_CSRID(REG)		LOONGARCH_REG_64(KVM_REG_LOONGARCH_CSR, REG)
++#define KVM_IOC_CPUCFG(REG)		LOONGARCH_REG_64(KVM_REG_LOONGARCH_CPUCFG, REG)
++
++/* Device Control API on vm fd */
++#define KVM_LOONGARCH_VM_FEAT_CTRL		0
++#define  KVM_LOONGARCH_VM_FEAT_LSX		0
++#define  KVM_LOONGARCH_VM_FEAT_LASX		1
++#define  KVM_LOONGARCH_VM_FEAT_X86BT		2
++#define  KVM_LOONGARCH_VM_FEAT_ARMBT		3
++#define  KVM_LOONGARCH_VM_FEAT_MIPSBT		4
++#define  KVM_LOONGARCH_VM_FEAT_PMU		5
++#define  KVM_LOONGARCH_VM_FEAT_PV_IPI		6
++#define  KVM_LOONGARCH_VM_FEAT_PV_STEALTIME	7
++#define  KVM_LOONGARCH_VM_FEAT_PTW		8
++
++/* Device Control API on vcpu fd */
++#define KVM_LOONGARCH_VCPU_CPUCFG	0
++#define KVM_LOONGARCH_VCPU_PVTIME_CTRL	1
++#define  KVM_LOONGARCH_VCPU_PVTIME_GPA	0
++
++struct kvm_debug_exit_arch {
++};
++
++/* for KVM_SET_GUEST_DEBUG */
++struct kvm_guest_debug_arch {
++};
++
++/* definition of registers in kvm_run */
++struct kvm_sync_regs {
++};
++
++/* dummy definition */
++struct kvm_sregs {
++};
++
++struct kvm_iocsr_entry {
++	__u32 addr;
++	__u32 pad;
++	__u64 data;
++};
++
++#define KVM_NR_IRQCHIPS		1
++#define KVM_IRQCHIP_NUM_PINS	64
++#define KVM_MAX_CORES		256
++
++#define KVM_DEV_LOONGARCH_IPI_GRP_REGS			0x40000001
++
++#define KVM_DEV_LOONGARCH_EXTIOI_GRP_REGS		0x40000002
++
++#define KVM_DEV_LOONGARCH_EXTIOI_GRP_SW_STATUS		0x40000003
++#define KVM_DEV_LOONGARCH_EXTIOI_SW_STATUS_NUM_CPU	0x0
++#define KVM_DEV_LOONGARCH_EXTIOI_SW_STATUS_FEATURE	0x1
++#define KVM_DEV_LOONGARCH_EXTIOI_SW_STATUS_STATE	0x2
++
++#define KVM_DEV_LOONGARCH_EXTIOI_GRP_CTRL		0x40000004
++#define KVM_DEV_LOONGARCH_EXTIOI_CTRL_INIT_NUM_CPU	0x0
++#define KVM_DEV_LOONGARCH_EXTIOI_CTRL_INIT_FEATURE	0x1
++#define KVM_DEV_LOONGARCH_EXTIOI_CTRL_LOAD_FINISHED	0x3
++
++#define KVM_DEV_LOONGARCH_PCH_PIC_GRP_REGS	        0x40000005
++#define KVM_DEV_LOONGARCH_PCH_PIC_GRP_CTRL	        0x40000006
++#define KVM_DEV_LOONGARCH_PCH_PIC_CTRL_INIT	        0
++
++#endif /* __UAPI_ASM_LOONGARCH_KVM_H */
+diff --git a/original/uapi/asm-loongarch/asm/kvm_para.h b/original/uapi/asm-loongarch/asm/kvm_para.h
+new file mode 100644
+index 0000000..fd7f407
+--- /dev/null
++++ b/original/uapi/asm-loongarch/asm/kvm_para.h
+@@ -0,0 +1,22 @@
++/* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
++#ifndef _ASM_KVM_PARA_H
++#define _ASM_KVM_PARA_H
++
++#include <linux/types.h>
++
++/*
++ * CPUCFG index area: 0x40000000 -- 0x400000ff
++ * SW emulation for KVM hypervirsor
++ */
++#define CPUCFG_KVM_BASE			0x40000000
++#define CPUCFG_KVM_SIZE			0x100
++#define CPUCFG_KVM_SIG			(CPUCFG_KVM_BASE + 0)
++#define  KVM_SIGNATURE			"KVM\0"
++#define CPUCFG_KVM_FEATURE		(CPUCFG_KVM_BASE + 4)
++#define  KVM_FEATURE_IPI		1
++#define  KVM_FEATURE_STEAL_TIME		2
++/* BIT 24 - 31 are features configurable by user space vmm */
++#define  KVM_FEATURE_VIRT_EXTIOI	24
++#define  KVM_FEATURE_USER_HCALL		25
++
++#endif /* _ASM_KVM_PARA_H */
+diff --git a/original/uapi/asm-loongarch/asm/mman.h b/original/uapi/asm-loongarch/asm/mman.h
+new file mode 100644
+index 0000000..8eebf89
+--- /dev/null
++++ b/original/uapi/asm-loongarch/asm/mman.h
+@@ -0,0 +1 @@
++#include <asm-generic/mman.h>
+diff --git a/original/uapi/asm-loongarch/asm/msgbuf.h b/original/uapi/asm-loongarch/asm/msgbuf.h
+new file mode 100644
+index 0000000..809134c
+--- /dev/null
++++ b/original/uapi/asm-loongarch/asm/msgbuf.h
+@@ -0,0 +1 @@
++#include <asm-generic/msgbuf.h>
+diff --git a/original/uapi/asm-loongarch/asm/param.h b/original/uapi/asm-loongarch/asm/param.h
+new file mode 100644
+index 0000000..965d454
+--- /dev/null
++++ b/original/uapi/asm-loongarch/asm/param.h
+@@ -0,0 +1 @@
++#include <asm-generic/param.h>
+diff --git a/original/uapi/asm-loongarch/asm/perf_regs.h b/original/uapi/asm-loongarch/asm/perf_regs.h
+new file mode 100644
+index 0000000..29d69c0
+--- /dev/null
++++ b/original/uapi/asm-loongarch/asm/perf_regs.h
+@@ -0,0 +1,40 @@
++/* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
++#ifndef _ASM_LOONGARCH_PERF_REGS_H
++#define _ASM_LOONGARCH_PERF_REGS_H
++
++enum perf_event_loongarch_regs {
++	PERF_REG_LOONGARCH_PC,
++	PERF_REG_LOONGARCH_R1,
++	PERF_REG_LOONGARCH_R2,
++	PERF_REG_LOONGARCH_R3,
++	PERF_REG_LOONGARCH_R4,
++	PERF_REG_LOONGARCH_R5,
++	PERF_REG_LOONGARCH_R6,
++	PERF_REG_LOONGARCH_R7,
++	PERF_REG_LOONGARCH_R8,
++	PERF_REG_LOONGARCH_R9,
++	PERF_REG_LOONGARCH_R10,
++	PERF_REG_LOONGARCH_R11,
++	PERF_REG_LOONGARCH_R12,
++	PERF_REG_LOONGARCH_R13,
++	PERF_REG_LOONGARCH_R14,
++	PERF_REG_LOONGARCH_R15,
++	PERF_REG_LOONGARCH_R16,
++	PERF_REG_LOONGARCH_R17,
++	PERF_REG_LOONGARCH_R18,
++	PERF_REG_LOONGARCH_R19,
++	PERF_REG_LOONGARCH_R20,
++	PERF_REG_LOONGARCH_R21,
++	PERF_REG_LOONGARCH_R22,
++	PERF_REG_LOONGARCH_R23,
++	PERF_REG_LOONGARCH_R24,
++	PERF_REG_LOONGARCH_R25,
++	PERF_REG_LOONGARCH_R26,
++	PERF_REG_LOONGARCH_R27,
++	PERF_REG_LOONGARCH_R28,
++	PERF_REG_LOONGARCH_R29,
++	PERF_REG_LOONGARCH_R30,
++	PERF_REG_LOONGARCH_R31,
++	PERF_REG_LOONGARCH_MAX,
++};
++#endif /* _ASM_LOONGARCH_PERF_REGS_H */
+diff --git a/original/uapi/asm-loongarch/asm/poll.h b/original/uapi/asm-loongarch/asm/poll.h
+new file mode 100644
+index 0000000..c98509d
+--- /dev/null
++++ b/original/uapi/asm-loongarch/asm/poll.h
+@@ -0,0 +1 @@
++#include <asm-generic/poll.h>
+diff --git a/original/uapi/asm-loongarch/asm/posix_types.h b/original/uapi/asm-loongarch/asm/posix_types.h
+new file mode 100644
+index 0000000..22cae62
+--- /dev/null
++++ b/original/uapi/asm-loongarch/asm/posix_types.h
+@@ -0,0 +1 @@
++#include <asm-generic/posix_types.h>
+diff --git a/original/uapi/asm-loongarch/asm/ptrace.h b/original/uapi/asm-loongarch/asm/ptrace.h
+new file mode 100644
+index 0000000..7b68704
+--- /dev/null
++++ b/original/uapi/asm-loongarch/asm/ptrace.h
+@@ -0,0 +1,84 @@
++/* SPDX-License-Identifier: GPL-2.0+ WITH Linux-syscall-note */
++/*
++ * Author: Hanlu Li <lihanlu@loongson.cn>
++ *         Huacai Chen <chenhuacai@loongson.cn>
++ *
++ * Copyright (C) 2020-2022 Loongson Technology Corporation Limited
++ */
++#ifndef _ASM_PTRACE_H
++#define _ASM_PTRACE_H
++
++#include <linux/types.h>
++
++/*
++ * For PTRACE_{POKE,PEEK}USR. 0 - 31 are GPRs,
++ * 32 is syscall's original ARG0, 33 is PC, 34 is BADVADDR.
++ */
++#define GPR_BASE	0
++#define GPR_NUM		32
++#define GPR_END		(GPR_BASE + GPR_NUM - 1)
++#define ARG0		(GPR_END + 1)
++#define PC		(GPR_END + 2)
++#define BADVADDR	(GPR_END + 3)
++
++#define NUM_FPU_REGS	32
++
++struct user_pt_regs {
++	/* Main processor registers. */
++	unsigned long regs[32];
++
++	/* Original syscall arg0. */
++	unsigned long orig_a0;
++
++	/* Special CSR registers. */
++	unsigned long csr_era;
++	unsigned long csr_badv;
++	unsigned long reserved[10];
++} __attribute__((aligned(8)));
++
++struct user_fp_state {
++	__u64 fpr[32];
++	__u64 fcc;
++	__u32 fcsr;
++};
++
++struct user_lsx_state {
++	/* 32 registers, 128 bits width per register. */
++	__u64 vregs[32*2];
++};
++
++struct user_lasx_state {
++	/* 32 registers, 256 bits width per register. */
++	__u64 vregs[32*4];
++};
++
++struct user_lbt_state {
++	__u64 scr[4];
++	__u32 eflags;
++	__u32 ftop;
++};
++
++struct user_watch_state {
++	__u64 dbg_info;
++	struct {
++		__u64    addr;
++		__u64    mask;
++		__u32    ctrl;
++		__u32    pad;
++	} dbg_regs[8];
++};
++
++struct user_watch_state_v2 {
++	__u64 dbg_info;
++	struct {
++		__u64    addr;
++		__u64    mask;
++		__u32    ctrl;
++		__u32    pad;
++	} dbg_regs[14];
++};
++
++#define PTRACE_SYSEMU			0x1f
++#define PTRACE_SYSEMU_SINGLESTEP	0x20
++
++#endif /* _ASM_PTRACE_H */
+diff --git a/original/uapi/asm-loongarch/asm/reg.h b/original/uapi/asm-loongarch/asm/reg.h
+new file mode 100644
+index 0000000..90ad910
+--- /dev/null
++++ b/original/uapi/asm-loongarch/asm/reg.h
+@@ -0,0 +1,59 @@
++/* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
++/*
++ * Various register offset definitions for debuggers, core file
++ * examiners and whatnot.
++ *
++ * Copyright (C) 2020-2022 Loongson Technology Corporation Limited
++ */
++
++#ifndef __UAPI_ASM_LOONGARCH_REG_H
++#define __UAPI_ASM_LOONGARCH_REG_H
++
++#define LOONGARCH_EF_R0		0
++#define LOONGARCH_EF_R1		1
++#define LOONGARCH_EF_R2		2
++#define LOONGARCH_EF_R3		3
++#define LOONGARCH_EF_R4		4
++#define LOONGARCH_EF_R5		5
++#define LOONGARCH_EF_R6		6
++#define LOONGARCH_EF_R7		7
++#define LOONGARCH_EF_R8		8
++#define LOONGARCH_EF_R9		9
++#define LOONGARCH_EF_R10	10
++#define LOONGARCH_EF_R11	11
++#define LOONGARCH_EF_R12	12
++#define LOONGARCH_EF_R13	13
++#define LOONGARCH_EF_R14	14
++#define LOONGARCH_EF_R15	15
++#define LOONGARCH_EF_R16	16
++#define LOONGARCH_EF_R17	17
++#define LOONGARCH_EF_R18	18
++#define LOONGARCH_EF_R19	19
++#define LOONGARCH_EF_R20	20
++#define LOONGARCH_EF_R21	21
++#define LOONGARCH_EF_R22	22
++#define LOONGARCH_EF_R23	23
++#define LOONGARCH_EF_R24	24
++#define LOONGARCH_EF_R25	25
++#define LOONGARCH_EF_R26	26
++#define LOONGARCH_EF_R27	27
++#define LOONGARCH_EF_R28	28
++#define LOONGARCH_EF_R29	29
++#define LOONGARCH_EF_R30	30
++#define LOONGARCH_EF_R31	31
++
++/*
++ * Saved special registers
++ */
++#define LOONGARCH_EF_ORIG_A0	32
++#define LOONGARCH_EF_CSR_ERA	33
++#define LOONGARCH_EF_CSR_BADV	34
++#define LOONGARCH_EF_CSR_CRMD	35
++#define LOONGARCH_EF_CSR_PRMD	36
++#define LOONGARCH_EF_CSR_EUEN	37
++#define LOONGARCH_EF_CSR_ECFG	38
++#define LOONGARCH_EF_CSR_ESTAT	39
++
++#define LOONGARCH_EF_SIZE	320	/* size in bytes */
++
++#endif /* __UAPI_ASM_LOONGARCH_REG_H */
+diff --git a/original/uapi/asm-loongarch/asm/resource.h b/original/uapi/asm-loongarch/asm/resource.h
+new file mode 100644
+index 0000000..04bc4db
+--- /dev/null
++++ b/original/uapi/asm-loongarch/asm/resource.h
+@@ -0,0 +1 @@
++#include <asm-generic/resource.h>
+diff --git a/original/uapi/asm-loongarch/asm/sembuf.h b/original/uapi/asm-loongarch/asm/sembuf.h
+new file mode 100644
+index 0000000..7673b83
+--- /dev/null
++++ b/original/uapi/asm-loongarch/asm/sembuf.h
+@@ -0,0 +1 @@
++#include <asm-generic/sembuf.h>
+diff --git a/original/uapi/asm-loongarch/asm/setup.h b/original/uapi/asm-loongarch/asm/setup.h
+new file mode 100644
+index 0000000..ad8eafd
+--- /dev/null
++++ b/original/uapi/asm-loongarch/asm/setup.h
+@@ -0,0 +1,8 @@
++/* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
++
++#ifndef _ASM_LOONGARCH_SETUP_H
++#define _ASM_LOONGARCH_SETUP_H
++
++#define COMMAND_LINE_SIZE	4096
++
++#endif /* _ASM_LOONGARCH_SETUP_H */
+diff --git a/original/uapi/asm-loongarch/asm/shmbuf.h b/original/uapi/asm-loongarch/asm/shmbuf.h
+new file mode 100644
+index 0000000..83c05fc
+--- /dev/null
++++ b/original/uapi/asm-loongarch/asm/shmbuf.h
+@@ -0,0 +1 @@
++#include <asm-generic/shmbuf.h>
+diff --git a/original/uapi/asm-loongarch/asm/sigcontext.h b/original/uapi/asm-loongarch/asm/sigcontext.h
+new file mode 100644
+index 0000000..a91eb6a
+--- /dev/null
++++ b/original/uapi/asm-loongarch/asm/sigcontext.h
+@@ -0,0 +1,71 @@
++/* SPDX-License-Identifier: GPL-2.0+ WITH Linux-syscall-note */
++/*
++ * Author: Hanlu Li <lihanlu@loongson.cn>
++ *         Huacai Chen <chenhuacai@loongson.cn>
++ *
++ * Copyright (C) 2020-2022 Loongson Technology Corporation Limited
++ */
++#ifndef _ASM_SIGCONTEXT_H
++#define _ASM_SIGCONTEXT_H
++
++#include <linux/types.h>
++
++/* FP context was used */
++#define SC_USED_FP		(1 << 0)
++/* Address error was due to memory load */
++#define SC_ADDRERR_RD		(1 << 30)
++/* Address error was due to memory store */
++#define SC_ADDRERR_WR		(1 << 31)
++
++struct sigcontext {
++	__u64	sc_pc;
++	__u64	sc_regs[32];
++	__u32	sc_flags;
++	__u64	sc_extcontext[0] __attribute__((__aligned__(16)));
++};
++
++#define CONTEXT_INFO_ALIGN	16
++struct sctx_info {
++	__u32	magic;
++	__u32	size;
++	__u64	padding;	/* padding to 16 bytes */
++};
++
++/* FPU context */
++#define FPU_CTX_MAGIC		0x46505501
++#define FPU_CTX_ALIGN		8
++struct fpu_context {
++	__u64	regs[32];
++	__u64	fcc;
++	__u32	fcsr;
++};
++
++/* LSX context */
++#define LSX_CTX_MAGIC		0x53580001
++#define LSX_CTX_ALIGN		16
++struct lsx_context {
++	__u64	regs[2*32];
++	__u64	fcc;
++	__u32	fcsr;
++};
++
++/* LASX context */
++#define LASX_CTX_MAGIC		0x41535801
++#define LASX_CTX_ALIGN		32
++struct lasx_context {
++	__u64	regs[4*32];
++	__u64	fcc;
++	__u32	fcsr;
++};
++
++/* LBT context */
++#define LBT_CTX_MAGIC		0x42540001
++#define LBT_CTX_ALIGN		8
++struct lbt_context {
++	__u64	regs[4];
++	__u32	eflags;
++	__u32	ftop;
++};
++
++
++#endif /* _ASM_SIGCONTEXT_H */
+diff --git a/original/uapi/asm-loongarch/asm/siginfo.h b/original/uapi/asm-loongarch/asm/siginfo.h
+new file mode 100644
+index 0000000..0815d29
+--- /dev/null
++++ b/original/uapi/asm-loongarch/asm/siginfo.h
+@@ -0,0 +1 @@
++#include <asm-generic/siginfo.h>
+diff --git a/original/uapi/asm-loongarch/asm/signal.h b/original/uapi/asm-loongarch/asm/signal.h
+new file mode 100644
+index 0000000..2fe75e7
+--- /dev/null
++++ b/original/uapi/asm-loongarch/asm/signal.h
+@@ -0,0 +1,13 @@
++/* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
++/*
++ * Copyright (C) 2020-2022 Loongson Technology Corporation Limited
++ */
++#ifndef _ASM_SIGNAL_H
++#define _ASM_SIGNAL_H
++
++#define MINSIGSTKSZ 4096
++#define SIGSTKSZ    16384
++
++#include <asm-generic/signal.h>
++
++#endif
+diff --git a/original/uapi/asm-loongarch/asm/socket.h b/original/uapi/asm-loongarch/asm/socket.h
+new file mode 100644
+index 0000000..6b71384
+--- /dev/null
++++ b/original/uapi/asm-loongarch/asm/socket.h
+@@ -0,0 +1 @@
++#include <asm-generic/socket.h>
+diff --git a/original/uapi/asm-loongarch/asm/sockios.h b/original/uapi/asm-loongarch/asm/sockios.h
+new file mode 100644
+index 0000000..def6d47
+--- /dev/null
++++ b/original/uapi/asm-loongarch/asm/sockios.h
+@@ -0,0 +1 @@
++#include <asm-generic/sockios.h>
+diff --git a/original/uapi/asm-loongarch/asm/stat.h b/original/uapi/asm-loongarch/asm/stat.h
+new file mode 100644
+index 0000000..3dc90fa
+--- /dev/null
++++ b/original/uapi/asm-loongarch/asm/stat.h
+@@ -0,0 +1 @@
++#include <asm-generic/stat.h>
+diff --git a/original/uapi/asm-loongarch/asm/statfs.h b/original/uapi/asm-loongarch/asm/statfs.h
+new file mode 100644
+index 0000000..0b91fe1
+--- /dev/null
++++ b/original/uapi/asm-loongarch/asm/statfs.h
+@@ -0,0 +1 @@
++#include <asm-generic/statfs.h>
+diff --git a/original/uapi/asm-loongarch/asm/swab.h b/original/uapi/asm-loongarch/asm/swab.h
+new file mode 100644
+index 0000000..7847e56
+--- /dev/null
++++ b/original/uapi/asm-loongarch/asm/swab.h
+@@ -0,0 +1 @@
++#include <asm-generic/swab.h>
+diff --git a/original/uapi/asm-loongarch/asm/termbits.h b/original/uapi/asm-loongarch/asm/termbits.h
+new file mode 100644
+index 0000000..3935b10
+--- /dev/null
++++ b/original/uapi/asm-loongarch/asm/termbits.h
+@@ -0,0 +1 @@
++#include <asm-generic/termbits.h>
+diff --git a/original/uapi/asm-loongarch/asm/termios.h b/original/uapi/asm-loongarch/asm/termios.h
+new file mode 100644
+index 0000000..280d78a
+--- /dev/null
++++ b/original/uapi/asm-loongarch/asm/termios.h
+@@ -0,0 +1 @@
++#include <asm-generic/termios.h>
+diff --git a/original/uapi/asm-loongarch/asm/types.h b/original/uapi/asm-loongarch/asm/types.h
+new file mode 100644
+index 0000000..b9e79bc
+--- /dev/null
++++ b/original/uapi/asm-loongarch/asm/types.h
+@@ -0,0 +1 @@
++#include <asm-generic/types.h>
+diff --git a/original/uapi/asm-loongarch/asm/ucontext.h b/original/uapi/asm-loongarch/asm/ucontext.h
+new file mode 100644
+index 0000000..12577e2
+--- /dev/null
++++ b/original/uapi/asm-loongarch/asm/ucontext.h
+@@ -0,0 +1,35 @@
++/* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
++#ifndef __LOONGARCH_UAPI_ASM_UCONTEXT_H
++#define __LOONGARCH_UAPI_ASM_UCONTEXT_H
++
++/**
++ * struct ucontext - user context structure
++ * @uc_flags:
++ * @uc_link:
++ * @uc_stack:
++ * @uc_mcontext:	holds basic processor state
++ * @uc_sigmask:
++ * @uc_extcontext:	holds extended processor state
++ */
++struct ucontext {
++	unsigned long		uc_flags;
++	struct ucontext		*uc_link;
++	stack_t			uc_stack;
++	sigset_t		uc_sigmask;
++	/* There's some padding here to allow sigset_t to be expanded in the
++	 * future.  Though this is unlikely, other architectures put uc_sigmask
++	 * at the end of this structure and explicitly state it can be
++	 * expanded, so we didn't want to box ourselves in here. */
++	__u8		  __unused[1024 / 8 - sizeof(sigset_t)];
++	/* We can't put uc_sigmask at the end of this structure because we need
++	 * to be able to expand sigcontext in the future.  For example, the
++	 * vector ISA extension will almost certainly add ISA state.  We want
++	 * to ensure all user-visible ISA state can be saved and restored via a
++	 * ucontext, so we're putting this at the end in order to allow for
++	 * infinite extensibility.  Since we know this will be extended and we
++	 * assume sigset_t won't be extended an extreme amount, we're
++	 * prioritizing this. */
++	struct sigcontext	uc_mcontext;
++};
++
++#endif /* __LOONGARCH_UAPI_ASM_UCONTEXT_H */
+diff --git a/original/uapi/asm-loongarch/asm/unistd.h b/original/uapi/asm-loongarch/asm/unistd.h
+new file mode 100644
+index 0000000..1f01980
+--- /dev/null
++++ b/original/uapi/asm-loongarch/asm/unistd.h
+@@ -0,0 +1,3 @@
++/* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
++
++#include <asm/unistd_64.h>
+diff --git a/original/uapi/asm-loongarch/asm/unistd_64.h b/original/uapi/asm-loongarch/asm/unistd_64.h
+new file mode 100644
+index 0000000..4427c3c
+--- /dev/null
++++ b/original/uapi/asm-loongarch/asm/unistd_64.h
+@@ -0,0 +1,328 @@
++#ifndef _ASM_UNISTD_64_H
++#define _ASM_UNISTD_64_H
++
++#define __NR_io_setup 0
++#define __NR_io_destroy 1
++#define __NR_io_submit 2
++#define __NR_io_cancel 3
++#define __NR_io_getevents 4
++#define __NR_setxattr 5
++#define __NR_lsetxattr 6
++#define __NR_fsetxattr 7
++#define __NR_getxattr 8
++#define __NR_lgetxattr 9
++#define __NR_fgetxattr 10
++#define __NR_listxattr 11
++#define __NR_llistxattr 12
++#define __NR_flistxattr 13
++#define __NR_removexattr 14
++#define __NR_lremovexattr 15
++#define __NR_fremovexattr 16
++#define __NR_getcwd 17
++#define __NR_lookup_dcookie 18
++#define __NR_eventfd2 19
++#define __NR_epoll_create1 20
++#define __NR_epoll_ctl 21
++#define __NR_epoll_pwait 22
++#define __NR_dup 23
++#define __NR_dup3 24
++#define __NR_fcntl 25
++#define __NR_inotify_init1 26
++#define __NR_inotify_add_watch 27
++#define __NR_inotify_rm_watch 28
++#define __NR_ioctl 29
++#define __NR_ioprio_set 30
++#define __NR_ioprio_get 31
++#define __NR_flock 32
++#define __NR_mknodat 33
++#define __NR_mkdirat 34
++#define __NR_unlinkat 35
++#define __NR_symlinkat 36
++#define __NR_linkat 37
++#define __NR_umount2 39
++#define __NR_mount 40
++#define __NR_pivot_root 41
++#define __NR_nfsservctl 42
++#define __NR_statfs 43
++#define __NR_fstatfs 44
++#define __NR_truncate 45
++#define __NR_ftruncate 46
++#define __NR_fallocate 47
++#define __NR_faccessat 48
++#define __NR_chdir 49
++#define __NR_fchdir 50
++#define __NR_chroot 51
++#define __NR_fchmod 52
++#define __NR_fchmodat 53
++#define __NR_fchownat 54
++#define __NR_fchown 55
++#define __NR_openat 56
++#define __NR_close 57
++#define __NR_vhangup 58
++#define __NR_pipe2 59
++#define __NR_quotactl 60
++#define __NR_getdents64 61
++#define __NR_lseek 62
++#define __NR_read 63
++#define __NR_write 64
++#define __NR_readv 65
++#define __NR_writev 66
++#define __NR_pread64 67
++#define __NR_pwrite64 68
++#define __NR_preadv 69
++#define __NR_pwritev 70
++#define __NR_sendfile 71
++#define __NR_pselect6 72
++#define __NR_ppoll 73
++#define __NR_signalfd4 74
++#define __NR_vmsplice 75
++#define __NR_splice 76
++#define __NR_tee 77
++#define __NR_readlinkat 78
++#define __NR_newfstatat 79
++#define __NR_fstat 80
++#define __NR_sync 81
++#define __NR_fsync 82
++#define __NR_fdatasync 83
++#define __NR_sync_file_range 84
++#define __NR_timerfd_create 85
++#define __NR_timerfd_settime 86
++#define __NR_timerfd_gettime 87
++#define __NR_utimensat 88
++#define __NR_acct 89
++#define __NR_capget 90
++#define __NR_capset 91
++#define __NR_personality 92
++#define __NR_exit 93
++#define __NR_exit_group 94
++#define __NR_waitid 95
++#define __NR_set_tid_address 96
++#define __NR_unshare 97
++#define __NR_futex 98
++#define __NR_set_robust_list 99
++#define __NR_get_robust_list 100
++#define __NR_nanosleep 101
++#define __NR_getitimer 102
++#define __NR_setitimer 103
++#define __NR_kexec_load 104
++#define __NR_init_module 105
++#define __NR_delete_module 106
++#define __NR_timer_create 107
++#define __NR_timer_gettime 108
++#define __NR_timer_getoverrun 109
++#define __NR_timer_settime 110
++#define __NR_timer_delete 111
++#define __NR_clock_settime 112
++#define __NR_clock_gettime 113
++#define __NR_clock_getres 114
++#define __NR_clock_nanosleep 115
++#define __NR_syslog 116
++#define __NR_ptrace 117
++#define __NR_sched_setparam 118
++#define __NR_sched_setscheduler 119
++#define __NR_sched_getscheduler 120
++#define __NR_sched_getparam 121
++#define __NR_sched_setaffinity 122
++#define __NR_sched_getaffinity 123
++#define __NR_sched_yield 124
++#define __NR_sched_get_priority_max 125
++#define __NR_sched_get_priority_min 126
++#define __NR_sched_rr_get_interval 127
++#define __NR_restart_syscall 128
++#define __NR_kill 129
++#define __NR_tkill 130
++#define __NR_tgkill 131
++#define __NR_sigaltstack 132
++#define __NR_rt_sigsuspend 133
++#define __NR_rt_sigaction 134
++#define __NR_rt_sigprocmask 135
++#define __NR_rt_sigpending 136
++#define __NR_rt_sigtimedwait 137
++#define __NR_rt_sigqueueinfo 138
++#define __NR_rt_sigreturn 139
++#define __NR_setpriority 140
++#define __NR_getpriority 141
++#define __NR_reboot 142
++#define __NR_setregid 143
++#define __NR_setgid 144
++#define __NR_setreuid 145
++#define __NR_setuid 146
++#define __NR_setresuid 147
++#define __NR_getresuid 148
++#define __NR_setresgid 149
++#define __NR_getresgid 150
++#define __NR_setfsuid 151
++#define __NR_setfsgid 152
++#define __NR_times 153
++#define __NR_setpgid 154
++#define __NR_getpgid 155
++#define __NR_getsid 156
++#define __NR_setsid 157
++#define __NR_getgroups 158
++#define __NR_setgroups 159
++#define __NR_uname 160
++#define __NR_sethostname 161
++#define __NR_setdomainname 162
++#define __NR_getrusage 165
++#define __NR_umask 166
++#define __NR_prctl 167
++#define __NR_getcpu 168
++#define __NR_gettimeofday 169
++#define __NR_settimeofday 170
++#define __NR_adjtimex 171
++#define __NR_getpid 172
++#define __NR_getppid 173
++#define __NR_getuid 174
++#define __NR_geteuid 175
++#define __NR_getgid 176
++#define __NR_getegid 177
++#define __NR_gettid 178
++#define __NR_sysinfo 179
++#define __NR_mq_open 180
++#define __NR_mq_unlink 181
++#define __NR_mq_timedsend 182
++#define __NR_mq_timedreceive 183
++#define __NR_mq_notify 184
++#define __NR_mq_getsetattr 185
++#define __NR_msgget 186
++#define __NR_msgctl 187
++#define __NR_msgrcv 188
++#define __NR_msgsnd 189
++#define __NR_semget 190
++#define __NR_semctl 191
++#define __NR_semtimedop 192
++#define __NR_semop 193
++#define __NR_shmget 194
++#define __NR_shmctl 195
++#define __NR_shmat 196
++#define __NR_shmdt 197
++#define __NR_socket 198
++#define __NR_socketpair 199
++#define __NR_bind 200
++#define __NR_listen 201
++#define __NR_accept 202
++#define __NR_connect 203
++#define __NR_getsockname 204
++#define __NR_getpeername 205
++#define __NR_sendto 206
++#define __NR_recvfrom 207
++#define __NR_setsockopt 208
++#define __NR_getsockopt 209
++#define __NR_shutdown 210
++#define __NR_sendmsg 211
++#define __NR_recvmsg 212
++#define __NR_readahead 213
++#define __NR_brk 214
++#define __NR_munmap 215
++#define __NR_mremap 216
++#define __NR_add_key 217
++#define __NR_request_key 218
++#define __NR_keyctl 219
++#define __NR_clone 220
++#define __NR_execve 221
++#define __NR_mmap 222
++#define __NR_fadvise64 223
++#define __NR_swapon 224
++#define __NR_swapoff 225
++#define __NR_mprotect 226
++#define __NR_msync 227
++#define __NR_mlock 228
++#define __NR_munlock 229
++#define __NR_mlockall 230
++#define __NR_munlockall 231
++#define __NR_mincore 232
++#define __NR_madvise 233
++#define __NR_remap_file_pages 234
++#define __NR_mbind 235
++#define __NR_get_mempolicy 236
++#define __NR_set_mempolicy 237
++#define __NR_migrate_pages 238
++#define __NR_move_pages 239
++#define __NR_rt_tgsigqueueinfo 240
++#define __NR_perf_event_open 241
++#define __NR_accept4 242
++#define __NR_recvmmsg 243
++#define __NR_wait4 260
++#define __NR_prlimit64 261
++#define __NR_fanotify_init 262
++#define __NR_fanotify_mark 263
++#define __NR_name_to_handle_at 264
++#define __NR_open_by_handle_at 265
++#define __NR_clock_adjtime 266
++#define __NR_syncfs 267
++#define __NR_setns 268
++#define __NR_sendmmsg 269
++#define __NR_process_vm_readv 270
++#define __NR_process_vm_writev 271
++#define __NR_kcmp 272
++#define __NR_finit_module 273
++#define __NR_sched_setattr 274
++#define __NR_sched_getattr 275
++#define __NR_renameat2 276
++#define __NR_seccomp 277
++#define __NR_getrandom 278
++#define __NR_memfd_create 279
++#define __NR_bpf 280
++#define __NR_execveat 281
++#define __NR_userfaultfd 282
++#define __NR_membarrier 283
++#define __NR_mlock2 284
++#define __NR_copy_file_range 285
++#define __NR_preadv2 286
++#define __NR_pwritev2 287
++#define __NR_pkey_mprotect 288
++#define __NR_pkey_alloc 289
++#define __NR_pkey_free 290
++#define __NR_statx 291
++#define __NR_io_pgetevents 292
++#define __NR_rseq 293
++#define __NR_kexec_file_load 294
++#define __NR_pidfd_send_signal 424
++#define __NR_io_uring_setup 425
++#define __NR_io_uring_enter 426
++#define __NR_io_uring_register 427
++#define __NR_open_tree 428
++#define __NR_move_mount 429
++#define __NR_fsopen 430
++#define __NR_fsconfig 431
++#define __NR_fsmount 432
++#define __NR_fspick 433
++#define __NR_pidfd_open 434
++#define __NR_clone3 435
++#define __NR_close_range 436
++#define __NR_openat2 437
++#define __NR_pidfd_getfd 438
++#define __NR_faccessat2 439
++#define __NR_process_madvise 440
++#define __NR_epoll_pwait2 441
++#define __NR_mount_setattr 442
++#define __NR_quotactl_fd 443
++#define __NR_landlock_create_ruleset 444
++#define __NR_landlock_add_rule 445
++#define __NR_landlock_restrict_self 446
++#define __NR_memfd_secret 447
++#define __NR_process_mrelease 448
++#define __NR_futex_waitv 449
++#define __NR_set_mempolicy_home_node 450
++#define __NR_cachestat 451
++#define __NR_fchmodat2 452
++#define __NR_map_shadow_stack 453
++#define __NR_futex_wake 454
++#define __NR_futex_wait 455
++#define __NR_futex_requeue 456
++#define __NR_statmount 457
++#define __NR_listmount 458
++#define __NR_lsm_get_self_attr 459
++#define __NR_lsm_set_self_attr 460
++#define __NR_lsm_list_modules 461
++#define __NR_mseal 462
++#define __NR_setxattrat 463
++#define __NR_getxattrat 464
++#define __NR_listxattrat 465
++#define __NR_removexattrat 466
++#define __NR_open_tree_attr 467
++#define __NR_file_getattr 468
++#define __NR_file_setattr 469
++
++
++#endif /* _ASM_UNISTD_64_H */
+-- 
+2.43.0
+

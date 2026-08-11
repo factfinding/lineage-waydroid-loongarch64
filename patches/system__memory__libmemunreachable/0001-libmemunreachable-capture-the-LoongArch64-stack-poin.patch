@@ -1,0 +1,28 @@
+From 0f3309f6d23b1dc1eaa2044617691a4b70674bcd Mon Sep 17 00:00:00 2001
+From: noctis <970308389@qq.com>
+Date: Sun, 19 Jul 2026 16:42:22 +0800
+Subject: [PATCH] libmemunreachable: capture the LoongArch64 stack pointer
+
+Read the stack pointer from general register r3 in the LoongArch64 NT_PRSTATUS register set.\n\nTest: m -j8 libmemunreachable
+
+Change-Id: I7cdf46a9460eb9d587556859a168674465187a5d
+---
+ ThreadCapture.cpp | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/ThreadCapture.cpp b/ThreadCapture.cpp
+index 99d6494..ccc7559 100644
+--- a/ThreadCapture.cpp
++++ b/ThreadCapture.cpp
+@@ -232,6 +232,8 @@ bool ThreadCaptureImpl::PtraceThreadInfo(pid_t tid, ThreadInfo& thread_info) {
+       offsetof(struct pt_regs, ARM_sp) / sizeof(uintptr_t)
+ #elif defined(__i386__)
+       offsetof(struct pt_regs, esp) / sizeof(uintptr_t)
++#elif defined(__loongarch__)
++      offsetof(struct user_pt_regs, regs) / sizeof(uintptr_t) + 3
+ #elif defined(__riscv)
+       offsetof(struct user_regs_struct, sp) / sizeof(uintptr_t)
+ #elif defined(__x86_64__)
+-- 
+2.43.0
+

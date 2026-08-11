@@ -1,0 +1,472 @@
+From f88a4740a222b9da6913ba2d44f6fa0dc3747b36 Mon Sep 17 00:00:00 2001
+From: noctis <970308389@qq.com>
+Date: Wed, 5 Aug 2026 17:03:55 +0800
+Subject: [PATCH 2/3] native_bridge_support: support LoongArch64 hosts
+
+Reuse ARM64 guest trampoline descriptions on LoongArch64 hosts and model the LoongArch64 LP64 layout in the Vulkan generator. Include LoongArch64 in the camera API layout checks.\n\nTest: m -j8 berberis_all
+
+Change-Id: Ie1d6fb2b484c7e9562eae9b56b799457cc6fcdb3
+---
+ android_api/libEGL/proxy/egl_trampolines.cc   |  2 +-
+ .../libGLESv1_CM/proxy/gles_trampolines.cc    |  2 +-
+ .../libGLESv2/proxy/gles2_trampolines.cc      |  2 +-
+ .../libGLESv3/proxy/gles3_trampolines.cc      |  2 +-
+ .../libOpenMAXAL/proxy/maxal_translation.cc   |  2 +-
+ .../libOpenSLES/proxy/sles_trampolines.cc     |  2 +-
+ .../proxy/android_audio_trampolines.cc        |  2 +-
+ .../libamidi/proxy/libamidi_trampolines.cc    |  2 +-
+ .../proxy/libandroid_trampolines.cc           |  2 +-
+ .../proxy/android_runtime_trampolines.cc      |  2 +-
+ .../proxy/libbinder_ndk_trampolines.cc        |  2 +-
+ android_api/libc/proxy/libc_translation.cc    |  2 +-
+ .../proxy/android_camera_checks.h             |  3 +-
+ .../proxy/android_camera_trampolines.cc       |  2 +-
+ .../proxy/libjnigraphics_trampolines.cc       |  2 +-
+ android_api/libm/proxy/libm_trampolines.cc    |  2 +-
+ .../libmediandk/proxy/media_trampolines.cc    |  2 +-
+ .../proxy/nativehelper_trampolines.cc         |  2 +-
+ .../proxy/nativewindow_trampolines.cc         |  2 +-
+ .../proxy/neuralnetworks_trampolines.cc       |  2 +-
+ android_api/libvulkan/proxy/cpp_types.go      | 31 ++++++++++++++++++-
+ android_api/libvulkan/proxy/gen_vulkan.go     |  2 ++
+ .../libvulkan/proxy/vulkan_trampolines.cc     |  2 +-
+ ...ebviewchromium_plat_support_trampolines.cc |  2 +-
+ 24 files changed, 55 insertions(+), 23 deletions(-)
+
+diff --git a/android_api/libEGL/proxy/egl_trampolines.cc b/android_api/libEGL/proxy/egl_trampolines.cc
+index ec1e019..edec16e 100644
+--- a/android_api/libEGL/proxy/egl_trampolines.cc
++++ b/android_api/libEGL/proxy/egl_trampolines.cc
+@@ -185,7 +185,7 @@ void RunGuest_eglGetProcAddress(GuestAddr pc, GuestArgumentBuffer* buf) {
+ 
+ #include "trampolines_arm_to_x86-inl.h"  // generated file NOLINT [build/include]
+ 
+-#elif defined(NATIVE_BRIDGE_GUEST_ARCH_ARM64) && defined(__x86_64__)
++#elif defined(NATIVE_BRIDGE_GUEST_ARCH_ARM64) && (defined(__x86_64__) || defined(__loongarch__))
+ 
+ #include "trampolines_arm64_to_x86_64-inl.h"  // generated file NOLINT [build/include]
+ 
+diff --git a/android_api/libGLESv1_CM/proxy/gles_trampolines.cc b/android_api/libGLESv1_CM/proxy/gles_trampolines.cc
+index 98c15ab..a4b92e8 100644
+--- a/android_api/libGLESv1_CM/proxy/gles_trampolines.cc
++++ b/android_api/libGLESv1_CM/proxy/gles_trampolines.cc
+@@ -26,7 +26,7 @@ namespace {
+ 
+ #include "trampolines_arm_to_x86-inl.h"  // generated file NOLINT [build/include]
+ 
+-#elif defined(NATIVE_BRIDGE_GUEST_ARCH_ARM64) && defined(__x86_64__)
++#elif defined(NATIVE_BRIDGE_GUEST_ARCH_ARM64) && (defined(__x86_64__) || defined(__loongarch__))
+ 
+ #include "trampolines_arm64_to_x86_64-inl.h"  // generated file NOLINT [build/include]
+ 
+diff --git a/android_api/libGLESv2/proxy/gles2_trampolines.cc b/android_api/libGLESv2/proxy/gles2_trampolines.cc
+index fb0f456..f370a01 100644
+--- a/android_api/libGLESv2/proxy/gles2_trampolines.cc
++++ b/android_api/libGLESv2/proxy/gles2_trampolines.cc
+@@ -57,7 +57,7 @@ void DoCustomTrampoline_glGetPointervKHR(HostCode /* callee */, ProcessState* st
+ 
+ #include "trampolines_arm_to_x86-inl.h"  // generated file NOLINT [build/include]
+ 
+-#elif defined(NATIVE_BRIDGE_GUEST_ARCH_ARM64) && defined(__x86_64__)
++#elif defined(NATIVE_BRIDGE_GUEST_ARCH_ARM64) && (defined(__x86_64__) || defined(__loongarch__))
+ 
+ #include "trampolines_arm64_to_x86_64-inl.h"  // generated file NOLINT [build/include]
+ 
+diff --git a/android_api/libGLESv3/proxy/gles3_trampolines.cc b/android_api/libGLESv3/proxy/gles3_trampolines.cc
+index f2ec3dd..309a5b0 100644
+--- a/android_api/libGLESv3/proxy/gles3_trampolines.cc
++++ b/android_api/libGLESv3/proxy/gles3_trampolines.cc
+@@ -57,7 +57,7 @@ void DoCustomTrampoline_glGetPointervKHR(HostCode /* callee */, ProcessState* st
+ 
+ #include "trampolines_arm_to_x86-inl.h"  // generated file NOLINT [build/include]
+ 
+-#elif defined(NATIVE_BRIDGE_GUEST_ARCH_ARM64) && defined(__x86_64__)
++#elif defined(NATIVE_BRIDGE_GUEST_ARCH_ARM64) && (defined(__x86_64__) || defined(__loongarch__))
+ 
+ #include "trampolines_arm64_to_x86_64-inl.h"  // generated file NOLINT [build/include]
+ 
+diff --git a/android_api/libOpenMAXAL/proxy/maxal_translation.cc b/android_api/libOpenMAXAL/proxy/maxal_translation.cc
+index 220898d..3bc1db5 100644
+--- a/android_api/libOpenMAXAL/proxy/maxal_translation.cc
++++ b/android_api/libOpenMAXAL/proxy/maxal_translation.cc
+@@ -390,7 +390,7 @@ uint32_t DoThunk_xaCreateEngine(Guest_XAObjectItf* engine,
+ 
+ #include "trampolines_arm_to_x86-inl.h"  // generated file NOLINT [build/include]
+ 
+-#elif defined(NATIVE_BRIDGE_GUEST_ARCH_ARM64) && defined(__x86_64__)
++#elif defined(NATIVE_BRIDGE_GUEST_ARCH_ARM64) && (defined(__x86_64__) || defined(__loongarch__))
+ 
+ #include "trampolines_arm64_to_x86_64-inl.h"  // generated file NOLINT [build/include]
+ 
+diff --git a/android_api/libOpenSLES/proxy/sles_trampolines.cc b/android_api/libOpenSLES/proxy/sles_trampolines.cc
+index c92f595..1e07df7 100644
+--- a/android_api/libOpenSLES/proxy/sles_trampolines.cc
++++ b/android_api/libOpenSLES/proxy/sles_trampolines.cc
+@@ -922,7 +922,7 @@ void DoCustomTrampoline_slCreateEngine(HostCode /* callee */, ProcessState* stat
+ 
+ #include "trampolines_arm_to_x86-inl.h"  // generated file NOLINT [build/include]
+ 
+-#elif defined(NATIVE_BRIDGE_GUEST_ARCH_ARM64) && defined(__x86_64__)
++#elif defined(NATIVE_BRIDGE_GUEST_ARCH_ARM64) && (defined(__x86_64__) || defined(__loongarch__))
+ 
+ #include "trampolines_arm64_to_x86_64-inl.h"  // generated file NOLINT [build/include]
+ 
+diff --git a/android_api/libaaudio/proxy/android_audio_trampolines.cc b/android_api/libaaudio/proxy/android_audio_trampolines.cc
+index 0f47574..abbbfe9 100644
+--- a/android_api/libaaudio/proxy/android_audio_trampolines.cc
++++ b/android_api/libaaudio/proxy/android_audio_trampolines.cc
+@@ -27,7 +27,7 @@ namespace {
+ 
+ #include "trampolines_arm_to_x86-inl.h"  // generated file NOLINT [build/include]
+ 
+-#elif defined(NATIVE_BRIDGE_GUEST_ARCH_ARM64) && defined(__x86_64__)
++#elif defined(NATIVE_BRIDGE_GUEST_ARCH_ARM64) && (defined(__x86_64__) || defined(__loongarch__))
+ 
+ #include "trampolines_arm64_to_x86_64-inl.h"  // generated file NOLINT [build/include]
+ 
+diff --git a/android_api/libamidi/proxy/libamidi_trampolines.cc b/android_api/libamidi/proxy/libamidi_trampolines.cc
+index f0ac38d..134a4a4 100644
+--- a/android_api/libamidi/proxy/libamidi_trampolines.cc
++++ b/android_api/libamidi/proxy/libamidi_trampolines.cc
+@@ -29,7 +29,7 @@ namespace {
+ 
+ #include "trampolines_arm_to_x86-inl.h"  // generated file NOLINT [build/include]
+ 
+-#elif defined(NATIVE_BRIDGE_GUEST_ARCH_ARM64) && defined(__x86_64__)
++#elif defined(NATIVE_BRIDGE_GUEST_ARCH_ARM64) && (defined(__x86_64__) || defined(__loongarch__))
+ 
+ #include "trampolines_arm64_to_x86_64-inl.h"  // generated file NOLINT [build/include]
+ 
+diff --git a/android_api/libandroid/proxy/libandroid_trampolines.cc b/android_api/libandroid/proxy/libandroid_trampolines.cc
+index c796a75..f952ab3 100644
+--- a/android_api/libandroid/proxy/libandroid_trampolines.cc
++++ b/android_api/libandroid/proxy/libandroid_trampolines.cc
+@@ -182,7 +182,7 @@ void DoCustomTrampoline_AStorageManager_unmountObb(HostCode /* callee */, Proces
+ 
+ #include "trampolines_arm_to_x86-inl.h"  // generated file NOLINT [build/include]
+ 
+-#elif defined(NATIVE_BRIDGE_GUEST_ARCH_ARM64) && defined(__x86_64__)
++#elif defined(NATIVE_BRIDGE_GUEST_ARCH_ARM64) && (defined(__x86_64__) || defined(__loongarch__))
+ 
+ #include "trampolines_arm64_to_x86_64-inl.h"  // generated file NOLINT [build/include]
+ 
+diff --git a/android_api/libandroid_runtime/proxy/android_runtime_trampolines.cc b/android_api/libandroid_runtime/proxy/android_runtime_trampolines.cc
+index f55786b..1096026 100644
+--- a/android_api/libandroid_runtime/proxy/android_runtime_trampolines.cc
++++ b/android_api/libandroid_runtime/proxy/android_runtime_trampolines.cc
+@@ -46,7 +46,7 @@ void DoCustomTrampoline__ZN7android14AndroidRuntime21registerNativeMethodsEP7_JN
+ 
+ #include "trampolines_arm_to_x86-inl.h"  // generated file NOLINT [build/include]
+ 
+-#elif defined(NATIVE_BRIDGE_GUEST_ARCH_ARM64) && defined(__x86_64__)
++#elif defined(NATIVE_BRIDGE_GUEST_ARCH_ARM64) && (defined(__x86_64__) || defined(__loongarch__))
+ 
+ #include "trampolines_arm64_to_x86_64-inl.h"  // generated file NOLINT [build/include]
+ 
+diff --git a/android_api/libbinder_ndk/proxy/libbinder_ndk_trampolines.cc b/android_api/libbinder_ndk/proxy/libbinder_ndk_trampolines.cc
+index 0eb0eb9..3b8c815 100644
+--- a/android_api/libbinder_ndk/proxy/libbinder_ndk_trampolines.cc
++++ b/android_api/libbinder_ndk/proxy/libbinder_ndk_trampolines.cc
+@@ -29,7 +29,7 @@ namespace {
+ 
+ #include "trampolines_arm_to_x86-inl.h"  // generated file NOLINT [build/include]
+ 
+-#elif defined(NATIVE_BRIDGE_GUEST_ARCH_ARM64) && defined(__x86_64__)
++#elif defined(NATIVE_BRIDGE_GUEST_ARCH_ARM64) && (defined(__x86_64__) || defined(__loongarch__))
+ 
+ #include "trampolines_arm64_to_x86_64-inl.h"  // generated file NOLINT [build/include]
+ 
+diff --git a/android_api/libc/proxy/libc_translation.cc b/android_api/libc/proxy/libc_translation.cc
+index 756c0dd..ec7c59e 100644
+--- a/android_api/libc/proxy/libc_translation.cc
++++ b/android_api/libc/proxy/libc_translation.cc
+@@ -36,7 +36,7 @@ namespace {
+ 
+ #include "trampolines_arm_to_x86-inl.h"  // generated file NOLINT [build/include]
+ 
+-#elif defined(NATIVE_BRIDGE_GUEST_ARCH_ARM64) && defined(__x86_64__)
++#elif defined(NATIVE_BRIDGE_GUEST_ARCH_ARM64) && (defined(__x86_64__) || defined(__loongarch__))
+ 
+ #include "trampolines_arm64_to_x86_64-inl.h"  // generated file NOLINT [build/include]
+ 
+diff --git a/android_api/libcamera2ndk/proxy/android_camera_checks.h b/android_api/libcamera2ndk/proxy/android_camera_checks.h
+index 625841a..b23300f 100644
+--- a/android_api/libcamera2ndk/proxy/android_camera_checks.h
++++ b/android_api/libcamera2ndk/proxy/android_camera_checks.h
+@@ -70,7 +70,8 @@ CHECK_FIELD_LAYOUT(ACameraDevice_StateCallbacks, context, 0, 32);
+ CHECK_FIELD_LAYOUT(ACameraDevice_StateCallbacks, onDisconnected, 32, 32);
+ CHECK_FIELD_LAYOUT(ACameraDevice_StateCallbacks, onError, 64, 32);
+ 
+-#elif defined(__aarch64__) || defined(NATIVE_BRIDGE_GUEST_ARCH_ARM64) || defined(NATIVE_BRIDGE_GUEST_ARCH_RISCV64)
++#elif defined(__aarch64__) || defined(__loongarch__) || defined(NATIVE_BRIDGE_GUEST_ARCH_ARM64) || \
++    defined(NATIVE_BRIDGE_GUEST_ARCH_RISCV64)
+ 
+ // This is layout we expect from the ACameraManager_AvailabilityCallbacks
+ // TODO: Note that we do not really have a way to test that guest structure layout is
+diff --git a/android_api/libcamera2ndk/proxy/android_camera_trampolines.cc b/android_api/libcamera2ndk/proxy/android_camera_trampolines.cc
+index 2ae55cd..dad4034 100644
+--- a/android_api/libcamera2ndk/proxy/android_camera_trampolines.cc
++++ b/android_api/libcamera2ndk/proxy/android_camera_trampolines.cc
+@@ -435,7 +435,7 @@ camera_status_t DoThunk_ACameraManager_unregisterExtendedAvailabilityCallback(
+ 
+ #include "trampolines_arm_to_x86-inl.h"  // generated file NOLINT [build/include]
+ 
+-#elif defined(NATIVE_BRIDGE_GUEST_ARCH_ARM64) && defined(__x86_64__)
++#elif defined(NATIVE_BRIDGE_GUEST_ARCH_ARM64) && (defined(__x86_64__) || defined(__loongarch__))
+ 
+ #include "trampolines_arm64_to_x86_64-inl.h"  // generated file NOLINT [build/include]
+ 
+diff --git a/android_api/libjnigraphics/proxy/libjnigraphics_trampolines.cc b/android_api/libjnigraphics/proxy/libjnigraphics_trampolines.cc
+index 696618f..47138ea 100644
+--- a/android_api/libjnigraphics/proxy/libjnigraphics_trampolines.cc
++++ b/android_api/libjnigraphics/proxy/libjnigraphics_trampolines.cc
+@@ -72,7 +72,7 @@ void DoCustomTrampoline_AImageDecoderFrameInfo_getFrameRect(HostCode /* callee *
+ 
+ #include "trampolines_arm_to_x86-inl.h"  // generated file NOLINT [build/include]
+ 
+-#elif defined(NATIVE_BRIDGE_GUEST_ARCH_ARM64) && defined(__x86_64__)
++#elif defined(NATIVE_BRIDGE_GUEST_ARCH_ARM64) && (defined(__x86_64__) || defined(__loongarch__))
+ 
+ #include "trampolines_arm64_to_x86_64-inl.h"  // generated file NOLINT [build/include]
+ 
+diff --git a/android_api/libm/proxy/libm_trampolines.cc b/android_api/libm/proxy/libm_trampolines.cc
+index 54dd3a5..2832b50 100644
+--- a/android_api/libm/proxy/libm_trampolines.cc
++++ b/android_api/libm/proxy/libm_trampolines.cc
+@@ -25,7 +25,7 @@ namespace {
+ 
+ #include "trampolines_arm_to_x86-inl.h"  // generated file NOLINT [build/include]
+ 
+-#elif defined(NATIVE_BRIDGE_GUEST_ARCH_ARM64) && defined(__x86_64__)
++#elif defined(NATIVE_BRIDGE_GUEST_ARCH_ARM64) && (defined(__x86_64__) || defined(__loongarch__))
+ 
+ #include "trampolines_arm64_to_x86_64-inl.h"  // generated file NOLINT [build/include]
+ 
+diff --git a/android_api/libmediandk/proxy/media_trampolines.cc b/android_api/libmediandk/proxy/media_trampolines.cc
+index 0801cd3..ebca609 100644
+--- a/android_api/libmediandk/proxy/media_trampolines.cc
++++ b/android_api/libmediandk/proxy/media_trampolines.cc
+@@ -203,7 +203,7 @@ void DoCustomTrampoline_AMediaDataSource_setReadAt(HostCode /* callee */, Proces
+ 
+ #include "trampolines_arm_to_x86-inl.h"  // generated file NOLINT [build/include]
+ 
+-#elif defined(NATIVE_BRIDGE_GUEST_ARCH_ARM64) && defined(__x86_64__)
++#elif defined(NATIVE_BRIDGE_GUEST_ARCH_ARM64) && (defined(__x86_64__) || defined(__loongarch__))
+ 
+ #include "trampolines_arm64_to_x86_64-inl.h"  // generated file NOLINT [build/include]
+ 
+diff --git a/android_api/libnativehelper/proxy/nativehelper_trampolines.cc b/android_api/libnativehelper/proxy/nativehelper_trampolines.cc
+index 266c946..4a1d619 100644
+--- a/android_api/libnativehelper/proxy/nativehelper_trampolines.cc
++++ b/android_api/libnativehelper/proxy/nativehelper_trampolines.cc
+@@ -82,7 +82,7 @@ void DoCustomTrampoline_JNI_GetCreatedJavaVMs(HostCode /* callee */, ProcessStat
+ 
+ #include "trampolines_arm_to_x86-inl.h"  // generated file NOLINT [build/include]
+ 
+-#elif defined(NATIVE_BRIDGE_GUEST_ARCH_ARM64) && defined(__x86_64__)
++#elif defined(NATIVE_BRIDGE_GUEST_ARCH_ARM64) && (defined(__x86_64__) || defined(__loongarch__))
+ 
+ #include "trampolines_arm64_to_x86_64-inl.h"  // generated file NOLINT [build/include]
+ 
+diff --git a/android_api/libnativewindow/proxy/nativewindow_trampolines.cc b/android_api/libnativewindow/proxy/nativewindow_trampolines.cc
+index 5e314d1..ff19720 100644
+--- a/android_api/libnativewindow/proxy/nativewindow_trampolines.cc
++++ b/android_api/libnativewindow/proxy/nativewindow_trampolines.cc
+@@ -25,7 +25,7 @@ namespace {
+ 
+ #include "trampolines_arm_to_x86-inl.h"  // generated file NOLINT [build/include]
+ 
+-#elif defined(NATIVE_BRIDGE_GUEST_ARCH_ARM64) && defined(__x86_64__)
++#elif defined(NATIVE_BRIDGE_GUEST_ARCH_ARM64) && (defined(__x86_64__) || defined(__loongarch__))
+ 
+ #include "trampolines_arm64_to_x86_64-inl.h"  // generated file NOLINT [build/include]
+ 
+diff --git a/android_api/libneuralnetworks/proxy/neuralnetworks_trampolines.cc b/android_api/libneuralnetworks/proxy/neuralnetworks_trampolines.cc
+index 5c0f1ed..2e21a8c 100644
+--- a/android_api/libneuralnetworks/proxy/neuralnetworks_trampolines.cc
++++ b/android_api/libneuralnetworks/proxy/neuralnetworks_trampolines.cc
+@@ -25,7 +25,7 @@ namespace {
+ 
+ #include "trampolines_arm_to_x86-inl.h"  // generated file NOLINT [build/include]
+ 
+-#elif defined(NATIVE_BRIDGE_GUEST_ARCH_ARM64) && defined(__x86_64__)
++#elif defined(NATIVE_BRIDGE_GUEST_ARCH_ARM64) && (defined(__x86_64__) || defined(__loongarch__))
+ 
+ #include "trampolines_arm64_to_x86_64-inl.h"  // generated file NOLINT [build/include]
+ 
+diff --git a/android_api/libvulkan/proxy/cpp_types.go b/android_api/libvulkan/proxy/cpp_types.go
+index c5aa3c8..c718537 100644
+--- a/android_api/libvulkan/proxy/cpp_types.go
++++ b/android_api/libvulkan/proxy/cpp_types.go
+@@ -112,8 +112,11 @@ const (
+ 	Riscv64
+ 	X86
+ 	X86_64
++	// Vulkan's LoongArch64 C layouts use the same LP64 scalar and pointer
++	// layout modeled for RISC-V 64 below.
++	Loongarch64
+ 	FirstArch = Arm
+-	LastArch  = X86_64
++	LastArch  = Loongarch64
+ )
+ 
+ func Define(arch Arch) string {
+@@ -132,6 +135,8 @@ func Define(arch Arch) string {
+ 		return "defined(__i386__)"
+ 	case X86_64:
+ 		return "defined(__x86_64__)"
++	case Loongarch64:
++		return "defined(__loongarch__)"
+ 	}
+ }
+ 
+@@ -615,6 +620,8 @@ func (typе *archDependentType) Align(arch Arch) uint {
+ 		return typе.riscv32_type.Align(arch)
+ 	case Riscv64:
+ 		return typе.riscv64_type.Align(arch)
++	case Loongarch64:
++		return typе.riscv64_type.Align(Riscv64)
+ 	case X86:
+ 		return typе.x86_type.Align(arch)
+ 	case X86_64:
+@@ -634,6 +641,8 @@ func (typе *archDependentType) Bits(arch Arch) uint {
+ 		return typе.riscv32_type.Bits(arch)
+ 	case Riscv64:
+ 		return typе.riscv64_type.Bits(arch)
++	case Loongarch64:
++		return typе.riscv64_type.Bits(Riscv64)
+ 	case X86:
+ 		return typе.x86_type.Bits(arch)
+ 	case X86_64:
+@@ -653,6 +662,8 @@ func (typе *archDependentType) DeclareVar(var_name string, arch Arch) string {
+ 		return typе.riscv32_type.DeclareVar(var_name, arch)
+ 	case Riscv64:
+ 		return typе.riscv64_type.DeclareVar(var_name, arch)
++	case Loongarch64:
++		return typе.riscv64_type.DeclareVar(var_name, Riscv64)
+ 	case X86:
+ 		return typе.x86_type.DeclareVar(var_name, arch)
+ 	case X86_64:
+@@ -672,6 +683,8 @@ func (typе *archDependentType) BaseName(arch Arch) string {
+ 		return typе.riscv32_type.BaseName(arch)
+ 	case Riscv64:
+ 		return typе.riscv64_type.BaseName(arch)
++	case Loongarch64:
++		return typе.riscv64_type.BaseName(Riscv64)
+ 	case X86:
+ 		return typе.x86_type.BaseName(arch)
+ 	case X86_64:
+@@ -691,6 +704,8 @@ func (typе *archDependentType) Name(arch Arch) string {
+ 		return typе.riscv32_type.Name(arch)
+ 	case Riscv64:
+ 		return typе.riscv64_type.Name(arch)
++	case Loongarch64:
++		return typе.riscv64_type.Name(Riscv64)
+ 	case X86:
+ 		return typе.x86_type.Name(arch)
+ 	case X86_64:
+@@ -710,6 +725,8 @@ func (typе *archDependentType) Kind(arch Arch) Kind {
+ 		return typе.riscv32_type.Kind(arch)
+ 	case Riscv64:
+ 		return typе.riscv64_type.Kind(arch)
++	case Loongarch64:
++		return typе.riscv64_type.Kind(Riscv64)
+ 	case X86:
+ 		return typе.x86_type.Kind(arch)
+ 	case X86_64:
+@@ -729,6 +746,8 @@ func (typе *archDependentType) Elem(arch Arch) Type {
+ 		return typе.riscv32_type.Elem(arch)
+ 	case Riscv64:
+ 		return typе.riscv64_type.Elem(arch)
++	case Loongarch64:
++		return typе.riscv64_type.Elem(Riscv64)
+ 	case X86:
+ 		return typе.x86_type.Elem(arch)
+ 	case X86_64:
+@@ -748,6 +767,8 @@ func (typе *archDependentType) Field(i uint, arch Arch) FieldInfo {
+ 		return typе.riscv32_type.Field(i, arch)
+ 	case Riscv64:
+ 		return typе.riscv64_type.Field(i, arch)
++	case Loongarch64:
++		return typе.riscv64_type.Field(i, Riscv64)
+ 	case X86:
+ 		return typе.x86_type.Field(i, arch)
+ 	case X86_64:
+@@ -767,6 +788,8 @@ func (typе *archDependentType) NumField(arch Arch) uint {
+ 		return typе.riscv32_type.NumField(arch)
+ 	case Riscv64:
+ 		return typе.riscv64_type.NumField(arch)
++	case Loongarch64:
++		return typе.riscv64_type.NumField(Riscv64)
+ 	case X86:
+ 		return typе.x86_type.NumField(arch)
+ 	case X86_64:
+@@ -786,6 +809,8 @@ func (typе *archDependentType) Signed(arch Arch) bool {
+ 		return typе.riscv32_type.Signed(arch)
+ 	case Riscv64:
+ 		return typе.riscv64_type.Signed(arch)
++	case Loongarch64:
++		return typе.riscv64_type.Signed(Riscv64)
+ 	case X86:
+ 		return typе.x86_type.Signed(arch)
+ 	case X86_64:
+@@ -863,6 +888,8 @@ func (*pointerType) Align(arch Arch) uint {
+ 		return 32
+ 	case Riscv64:
+ 		return 64
++	case Loongarch64:
++		return 64
+ 	case X86:
+ 		return 32
+ 	case X86_64:
+@@ -882,6 +909,8 @@ func (*pointerType) Bits(arch Arch) uint {
+ 		return 32
+ 	case Riscv64:
+ 		return 64
++	case Loongarch64:
++		return 64
+ 	case X86:
+ 		return 32
+ 	case X86_64:
+diff --git a/android_api/libvulkan/proxy/gen_vulkan.go b/android_api/libvulkan/proxy/gen_vulkan.go
+index 64a9807..5b7fbf4 100644
+--- a/android_api/libvulkan/proxy/gen_vulkan.go
++++ b/android_api/libvulkan/proxy/gen_vulkan.go
+@@ -66,6 +66,8 @@ func main() {
+ 				host_arch = cpp_types.Riscv32
+ 			case args[id] == "riscv64":
+ 				host_arch = cpp_types.Riscv64
++			case args[id] == "loongarch64":
++				host_arch = cpp_types.Loongarch64
+ 			case args[id] == "x86":
+ 				host_arch = cpp_types.X86
+ 			case args[id] == "x86_64":
+diff --git a/android_api/libvulkan/proxy/vulkan_trampolines.cc b/android_api/libvulkan/proxy/vulkan_trampolines.cc
+index a84ae43..8d8ae40 100644
+--- a/android_api/libvulkan/proxy/vulkan_trampolines.cc
++++ b/android_api/libvulkan/proxy/vulkan_trampolines.cc
+@@ -400,7 +400,7 @@ void RunGuest_vkGetInstanceProcAddr(GuestAddr pc, GuestArgumentBuffer* buf) {
+ 
+ #include "trampolines_arm_to_x86-inl.h"  // generated file NOLINT [build/include]
+ 
+-#elif defined(NATIVE_BRIDGE_GUEST_ARCH_ARM64) && defined(__x86_64__)
++#elif defined(NATIVE_BRIDGE_GUEST_ARCH_ARM64) && (defined(__x86_64__) || defined(__loongarch__))
+ 
+ #include "trampolines_arm64_to_x86_64-inl.h"  // generated file NOLINT [build/include]
+ 
+diff --git a/android_api/libwebviewchromium_plat_support/proxy/libwebviewchromium_plat_support_trampolines.cc b/android_api/libwebviewchromium_plat_support/proxy/libwebviewchromium_plat_support_trampolines.cc
+index 9d9d9f0..c609a55 100644
+--- a/android_api/libwebviewchromium_plat_support/proxy/libwebviewchromium_plat_support_trampolines.cc
++++ b/android_api/libwebviewchromium_plat_support/proxy/libwebviewchromium_plat_support_trampolines.cc
+@@ -25,7 +25,7 @@ namespace {
+ 
+ #include "trampolines_arm_to_x86-inl.h"  // generated file NOLINT [build/include]
+ 
+-#elif defined(NATIVE_BRIDGE_GUEST_ARCH_ARM64) && defined(__x86_64__)
++#elif defined(NATIVE_BRIDGE_GUEST_ARCH_ARM64) && (defined(__x86_64__) || defined(__loongarch__))
+ 
+ #include "trampolines_arm64_to_x86_64-inl.h"  // generated file NOLINT [build/include]
+ 
+-- 
+2.43.0
+

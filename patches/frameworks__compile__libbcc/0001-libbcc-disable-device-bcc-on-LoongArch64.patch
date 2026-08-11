@@ -1,0 +1,32 @@
+From d3afca46fdd6c384b790f6bab010856eee57a6bb Mon Sep 17 00:00:00 2001
+From: noctis <970308389@qq.com>
+Date: Sun, 2 Aug 2026 08:17:29 +0800
+Subject: [PATCH] libbcc: disable device bcc on LoongArch64
+
+The legacy device compiler depends on an LLVM tree without a LoongArch backend. Keep the host tool available, but do not create the unsupported LoongArch64 device variant.
+
+Change-Id: I50c4a842ee9de4289232f08fbedc11fc6c84a06d
+---
+ tools/bcc/Android.bp | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/tools/bcc/Android.bp b/tools/bcc/Android.bp
+index d2d36ad..0815bac 100644
+--- a/tools/bcc/Android.bp
++++ b/tools/bcc/Android.bp
+@@ -28,6 +28,12 @@ cc_binary {
+     host_supported: true,
+     defaults: ["libbcc-defaults"],
+ 
++    arch: {
++        loongarch64: {
++            enabled: false,
++        },
++    },
++
+     shared_libs: [
+         "libbcc",
+         "libbcinfo",
+-- 
+2.43.0
+

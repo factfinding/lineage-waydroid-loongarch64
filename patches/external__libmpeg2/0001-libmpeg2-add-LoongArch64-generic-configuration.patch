@@ -1,0 +1,35 @@
+From 37757f16d0c384db53863c577961970cc6b6601b Mon Sep 17 00:00:00 2001
+From: noctis <970308389@qq.com>
+Date: Sat, 1 Aug 2026 23:19:17 +0800
+Subject: [PATCH] libmpeg2: add LoongArch64 generic configuration
+
+Change-Id: I95a1c4b640f0b99da599b8b47a89dc7b66bbaff7
+---
+ Android.bp | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
+
+diff --git a/Android.bp b/Android.bp
+index 4b82f9f..c8ef760 100644
+--- a/Android.bp
++++ b/Android.bp
+@@ -133,6 +133,17 @@ cc_library_static {
+             ],
+         },
+ 
++        loongarch64: {
++            local_include_dirs: [
++                "common/riscv",
++            ],
++
++            srcs: [
++                "common/riscv/ideint_function_selector.c",
++                "decoder/riscv/impeg2d_function_selector.c",
++            ],
++        },
++
+         riscv64: {
+             local_include_dirs: [
+                 "common/riscv",
+-- 
+2.43.0
+

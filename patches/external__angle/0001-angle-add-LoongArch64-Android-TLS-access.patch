@@ -1,0 +1,59 @@
+From 52386cdf69f6256b0fef73d651fc8c63f7768547 Mon Sep 17 00:00:00 2001
+From: noctis <970308389@qq.com>
+Date: Sat, 1 Aug 2026 17:31:14 +0800
+Subject: [PATCH] angle: add LoongArch64 Android TLS access
+
+Use bionic's Variant I TLS slot layout for LoongArch64 and read the thread pointer with the architecture's register move sequence. This enables ANGLE common code to build for Android LoongArch64.
+
+Change-Id: I0ac5c78ef71e7a217cec7dbf7c0616651f89c0a2
+---
+ src/common/platform.h | 5 +++--
+ src/common/tls.h      | 9 ++++++++-
+ 2 files changed, 11 insertions(+), 3 deletions(-)
+
+diff --git a/src/common/platform.h b/src/common/platform.h
+index 48d6c5dfa7..0300341faa 100644
+--- a/src/common/platform.h
++++ b/src/common/platform.h
+@@ -103,8 +103,9 @@
+ #    define FAR
+ #endif
+ 
+-// Mips and arm devices need to include stddef for size_t.
+-#if defined(__mips__) || defined(__arm__) || defined(__aarch64__) || defined(__riscv)
++// Mips, Arm, LoongArch and RISC-V devices need to include stddef for size_t.
++#if defined(__mips__) || defined(__arm__) || defined(__aarch64__) || defined(__loongarch__) || \
++    defined(__riscv)
+ #    include <stddef.h>
+ #endif
+ 
+diff --git a/src/common/tls.h b/src/common/tls.h
+index de20abfb6f..ea14544b0e 100644
+--- a/src/common/tls.h
++++ b/src/common/tls.h
+@@ -58,7 +58,7 @@ typedef pthread_key_t TLSIndex;
+ constexpr size_t kAndroidOpenGLTlsSlot = 3;
+ #    elif defined(__i386__) || defined(__x86_64__)
+ constexpr size_t kAndroidOpenGLTlsSlot = 3;
+-#    elif defined(__riscv)
++#    elif defined(__loongarch__) || defined(__riscv)
+ constexpr int kAndroidOpenGLTlsSlot = -5;
+ #    else
+ #        error Unsupported platform.
+@@ -118,6 +118,13 @@ constexpr int kAndroidOpenGLTlsSlot = -5;
+                 __asm__("mv %0, tp" : "=r"(__val)); \
+                 __val;                              \
+             })
++#    elif defined(__loongarch__)
++#        define ANGLE_ANDROID_GET_GL_TLS()                        \
++            ({                                                    \
++                void **__val;                                     \
++                __asm__("or %0, $tp, $zero" : "=r"(__val));       \
++                __val;                                            \
++            })
+ #    else
+ #        error unsupported architecture
+ #    endif
+-- 
+2.43.0
+

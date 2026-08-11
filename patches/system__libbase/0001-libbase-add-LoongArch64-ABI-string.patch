@@ -1,0 +1,26 @@
+From 0b35e9f5afea9ccbf263d6fe79903b4fbe9b1c61 Mon Sep 17 00:00:00 2001
+From: noctis <970308389@qq.com>
+Date: Mon, 3 Aug 2026 15:31:34 +0800
+Subject: [PATCH] libbase: add LoongArch64 ABI string
+
+Change-Id: If5f8f4fb155a0efdfd13e139a9d4e4447be1f028
+---
+ include/android-base/macros.h | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/include/android-base/macros.h b/include/android-base/macros.h
+index fda94eb..c890ac9 100644
+--- a/include/android-base/macros.h
++++ b/include/android-base/macros.h
+@@ -136,6 +136,8 @@ void UNUSED(const T&...) {
+ #define ABI_STRING "arm64"
+ #elif defined(__i386__)
+ #define ABI_STRING "x86"
++#elif defined(__loongarch__)
++#define ABI_STRING "loongarch64"
+ #elif defined(__riscv)
+ #define ABI_STRING "riscv64"
+ #elif defined(__x86_64__)
+-- 
+2.43.0
+

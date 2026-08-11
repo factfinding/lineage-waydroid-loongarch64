@@ -1,0 +1,31 @@
+From 5aa1d0bc342ee21cdd7c7b8109bf3b946ea178ef Mon Sep 17 00:00:00 2001
+From: noctis <970308389@qq.com>
+Date: Sun, 19 Jul 2026 20:21:25 +0800
+Subject: [PATCH] absl: read LoongArch PC from Bionic context
+
+Bionic exposes the LoongArch kernel sigcontext directly, where the program counter is named sc_pc. Keep the existing __pc access for glibc builds.
+
+Change-Id: I20352aeec69fd295e303c88b0b23e5d628b9904f
+---
+ absl/debugging/internal/examine_stack.cc | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/absl/debugging/internal/examine_stack.cc b/absl/debugging/internal/examine_stack.cc
+index 3dd6ba1a..a6c5eacb 100644
+--- a/absl/debugging/internal/examine_stack.cc
++++ b/absl/debugging/internal/examine_stack.cc
+@@ -197,7 +197,11 @@ void* GetProgramCounter(void* const vuc) {
+ #elif defined(__e2k__)
+     return reinterpret_cast<void*>(context->uc_mcontext.cr0_hi);
+ #elif defined(__loongarch__)
++#if defined(__BIONIC__)
++    return reinterpret_cast<void*>(context->uc_mcontext.sc_pc);
++#else
+     return reinterpret_cast<void*>(context->uc_mcontext.__pc);
++#endif
+ #else
+ #error "Undefined Architecture."
+ #endif
+-- 
+2.43.0
+

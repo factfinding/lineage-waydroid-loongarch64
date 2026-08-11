@@ -1,0 +1,27 @@
+From 2b56575558162656ee0362eb1f13f2d0a7bea9cb Mon Sep 17 00:00:00 2001
+From: noctis <970308389@qq.com>
+Date: Sat, 1 Aug 2026 14:36:10 +0800
+Subject: [PATCH] cpython3: define the LoongArch64 Android SOABI
+
+Change-Id: Ieef21416231080df58eeae31cb9fe11c5fe067b0
+---
+ Android.bp | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/Android.bp b/Android.bp
+index 29c13551b95..e6e32796fe1 100644
+--- a/Android.bp
++++ b/Android.bp
+@@ -138,6 +138,9 @@ cpython3_cc_defaults {
+         android_riscv64: {
+             cflags: ["-DSOABI=\"cpython-311android-riscv64-android-bionic\""],
+         },
++        android_loongarch64: {
++            cflags: ["-DSOABI=\"cpython-311android-loongarch64-android-bionic\""],
++        },
+         android_x86: {
+             cflags: ["-DSOABI=\"cpython-311android-x86-android-bionic\""],
+         },
+-- 
+2.43.0
+

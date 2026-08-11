@@ -1,0 +1,28 @@
+From 65d2d29eb8561a1e9efb9e2503b9e30fb4d65eca Mon Sep 17 00:00:00 2001
+From: noctis <970308389@qq.com>
+Date: Wed, 5 Aug 2026 09:36:47 +0800
+Subject: [PATCH 2/2] libcore: recognize the loongarch64 app ABI
+
+Map the canonical loongarch64 application ABI to the existing LoongArch64 ART instruction set. Keep lp64d as an early bring-up compatibility alias.
+
+Change-Id: I060eaa7351a4521917ff9de43ee5b17d05cb03ed
+---
+ libart/src/main/java/dalvik/system/VMRuntime.java | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/libart/src/main/java/dalvik/system/VMRuntime.java b/libart/src/main/java/dalvik/system/VMRuntime.java
+index aaf475f31f6..d5bc4f06ee4 100644
+--- a/libart/src/main/java/dalvik/system/VMRuntime.java
++++ b/libart/src/main/java/dalvik/system/VMRuntime.java
+@@ -71,6 +71,8 @@ public final class VMRuntime {
+         ABI_TO_INSTRUCTION_SET_MAP.put("arm64-v8a", "arm64");
+         ABI_TO_INSTRUCTION_SET_MAP.put("arm64-v8a-hwasan", "arm64");
+         ABI_TO_INSTRUCTION_SET_MAP.put("riscv64", "riscv64");
++        ABI_TO_INSTRUCTION_SET_MAP.put("loongarch64", "loongarch64");
++        // Compatibility alias used by early LoongArch Android bring-up builds.
+         ABI_TO_INSTRUCTION_SET_MAP.put("lp64d", "loongarch64");
+     }
+ 
+-- 
+2.43.0
+

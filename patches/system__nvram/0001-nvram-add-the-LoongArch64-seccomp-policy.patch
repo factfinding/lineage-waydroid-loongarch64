@@ -1,0 +1,82 @@
+From b4cb912ef070b3b89fc7c8da66a95bfccb60facb Mon Sep 17 00:00:00 2001
+From: noctis <970308389@qq.com>
+Date: Sun, 19 Jul 2026 11:01:23 +0800
+Subject: [PATCH] nvram: add the LoongArch64 seccomp policy
+
+Change-Id: I743c62245acfe1cdc85535845a992bcf8c38cf0b
+---
+ hal/Android.bp                            |  3 ++
+ hal/fake-nvram-seccomp-loongarch64.policy | 47 +++++++++++++++++++++++
+ 2 files changed, 50 insertions(+)
+ create mode 100644 hal/fake-nvram-seccomp-loongarch64.policy
+
+diff --git a/hal/Android.bp b/hal/Android.bp
+index c21e34a..2821dd1 100644
+--- a/hal/Android.bp
++++ b/hal/Android.bp
+@@ -97,6 +97,9 @@ prebuilt_usr_share {
+         arm64: {
+             src: "fake-nvram-seccomp-arm64.policy",
+         },
++        loongarch64: {
++            src: "fake-nvram-seccomp-loongarch64.policy",
++        },
+         riscv64: {
+             src: "fake-nvram-seccomp-riscv64.policy",
+         },
+diff --git a/hal/fake-nvram-seccomp-loongarch64.policy b/hal/fake-nvram-seccomp-loongarch64.policy
+new file mode 100644
+index 0000000..3de4bb4
+--- /dev/null
++++ b/hal/fake-nvram-seccomp-loongarch64.policy
+@@ -0,0 +1,47 @@
++#
++# Copyright (C) 2016 The Android Open Source Project
++#
++# Licensed under the Apache License, Version 2.0 (the "License");
++# you may not use this file except in compliance with the License.
++# You may obtain a copy of the License at
++#
++#      http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++#
++
++# Control socket operation.
++accept4: 1
++getsockopt: 1
++ppoll: 1
++
++# File operations.
++fdatasync: 1
++fstat: 1
++fsync: 1
++openat: 1
++renameat: 1
++unlinkat: 1
++
++# File and socket I/O.
++close: 1
++read: 1
++write: 1
++
++# Logging.
++clock_gettime: 1
++connect: 1
++fcntl: 1
++getuid: 1
++socket: 1
++writev: 1
++
++# Memory allocation.
++brk: 1
++mmap: 1
++munmap: 1
++madvise: 1
+-- 
+2.43.0
+

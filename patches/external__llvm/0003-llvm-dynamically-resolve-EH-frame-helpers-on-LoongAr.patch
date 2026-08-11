@@ -1,0 +1,30 @@
+From b0e27b89af2796784445457d03e104e123d35049 Mon Sep 17 00:00:00 2001
+From: noctis <970308389@qq.com>
+Date: Sat, 1 Aug 2026 17:43:20 +0800
+Subject: [PATCH 3/3] llvm: dynamically resolve EH frame helpers on LoongArch
+ Android
+
+Bionic's LoongArch64 runtime does not provide __register_frame or __deregister_frame for static linkage. Use RuntimeDyld's existing dynamic lookup fallback on this target so libLLVM_android can link while preserving the normal GNU runtime path on LoongArch Linux.
+
+Change-Id: I2ca13f4a1211d41265156b9d545c6179b2ad76b0
+---
+ lib/ExecutionEngine/RuntimeDyld/RTDyldMemoryManager.cpp | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/lib/ExecutionEngine/RuntimeDyld/RTDyldMemoryManager.cpp b/lib/ExecutionEngine/RuntimeDyld/RTDyldMemoryManager.cpp
+index e39acc7ee14..792e355fa33 100644
+--- a/lib/ExecutionEngine/RuntimeDyld/RTDyldMemoryManager.cpp
++++ b/lib/ExecutionEngine/RuntimeDyld/RTDyldMemoryManager.cpp
+@@ -34,7 +34,8 @@ RTDyldMemoryManager::~RTDyldMemoryManager() {}
+ 
+ // Determine whether we can register EH tables.
+ #if (defined(__GNUC__) && !defined(__ARM_EABI__) && !defined(__ia64__) && \
+-     !defined(__SEH__) && !defined(__USING_SJLJ_EXCEPTIONS__))
++     !defined(__SEH__) && !defined(__USING_SJLJ_EXCEPTIONS__) &&          \
++     !(defined(__BIONIC__) && defined(__loongarch__)))
+ #define HAVE_EHTABLE_SUPPORT 1
+ #else
+ #define HAVE_EHTABLE_SUPPORT 0
+-- 
+2.43.0
+

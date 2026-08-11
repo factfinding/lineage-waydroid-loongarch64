@@ -1,0 +1,37 @@
+From 5414fe46375b40825ae43f7736ee3450eb6f6308 Mon Sep 17 00:00:00 2001
+From: noctis <970308389@qq.com>
+Date: Sun, 19 Jul 2026 11:02:52 +0800
+Subject: [PATCH] vndk: add the LoongArch64 rustc-demangle header
+
+Change-Id: Ide5f9ede19cb1d88fa4645a3e2c4e52d5a31a5ec
+---
+ .../include/rustc_demangle.h                    | 17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
+ create mode 100644 loongarch64/include/external/rust/crates/rustc-demangle-capi/include/rustc_demangle.h
+
+diff --git a/loongarch64/include/external/rust/crates/rustc-demangle-capi/include/rustc_demangle.h b/loongarch64/include/external/rust/crates/rustc-demangle-capi/include/rustc_demangle.h
+new file mode 100644
+index 0000000..3c245ce
+--- /dev/null
++++ b/loongarch64/include/external/rust/crates/rustc-demangle-capi/include/rustc_demangle.h
+@@ -0,0 +1,17 @@
++#ifndef RUST_DEMANGLE_H_
++#define RUST_DEMANGLE_H_
++
++#ifdef __cplusplus
++extern "C" {
++#endif
++
++#include <stddef.h>
++
++// Stub — Rust toolchain not available for loongarch64.
++char *rustc_demangle(const char *mangled, char *out, size_t *len, int *status);
++
++#ifdef __cplusplus
++}
++#endif
++
++#endif // RUSTC_DEMANGLE_H_
+-- 
+2.43.0
+

@@ -1,0 +1,33 @@
+From 89e46e3d45dd6d4c6aeac24b2814813e7859819c Mon Sep 17 00:00:00 2001
+From: noctis <970308389@qq.com>
+Date: Wed, 5 Aug 2026 21:38:38 +0800
+Subject: [PATCH 2/2] compiler-rt: implement __clear_cache on LoongArch
+
+Use ibar 0 for Linux LoongArch, matching upstream LLVM, instead of falling into the unsupported target abort path.
+
+Change-Id: I9f6860231c9d2b3fbdd9ca602946f1d7aeca8bf1
+---
+ lib/builtins/clear_cache.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/lib/builtins/clear_cache.c b/lib/builtins/clear_cache.c
+index 55bbdd37..f1e9006e 100644
+--- a/lib/builtins/clear_cache.c
++++ b/lib/builtins/clear_cache.c
+@@ -122,6 +122,8 @@ void __clear_cache(void *start, void *end) {
+     #else
+         compilerrt_abort();
+     #endif
++#elif defined(__linux__) && defined(__loongarch__)
++  __asm__ volatile("ibar 0");
+ #elif defined(__mips__)
+   const uintptr_t start_int = (uintptr_t) start;
+   const uintptr_t end_int = (uintptr_t) end;
+@@ -167,4 +169,3 @@ void __clear_cache(void *start, void *end) {
+     #endif
+ #endif
+ }
+-
+-- 
+2.43.0
+

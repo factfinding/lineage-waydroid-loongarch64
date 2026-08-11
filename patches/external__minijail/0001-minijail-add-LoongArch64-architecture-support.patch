@@ -1,0 +1,43 @@
+From 06840f0903c89428a56ed438299ac4434deada84 Mon Sep 17 00:00:00 2001
+From: noctis <970308389@qq.com>
+Date: Sun, 19 Jul 2026 16:42:22 +0800
+Subject: [PATCH] minijail: add LoongArch64 architecture support
+
+Use the Linux LoongArch64 audit architecture and the generic modern syscall set used by Android.\n\nTest: m -j8 libminijail
+
+Change-Id: Ide537e48305e8d01927a8c9456a4895db2be1d53
+---
+ arch.h | 3 +++
+ util.c | 2 +-
+ 2 files changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/arch.h b/arch.h
+index a1f43ba..c1495c1 100644
+--- a/arch.h
++++ b/arch.h
+@@ -38,6 +38,9 @@
+ #elif defined(__ia64__)
+ #  define MINIJAIL_ARCH_NR AUDIT_ARCH_IA64
+ #  define MINIJAIL_ARCH_NAME "ia64"
++#elif defined(__loongarch__)
++#  define MINIJAIL_ARCH_NR AUDIT_ARCH_LOONGARCH64
++#  define MINIJAIL_ARCH_NAME "loongarch64"
+ #elif defined(__mips__)
+ #  if defined(__mips64)
+ #    if defined(__MIPSEB__)
+diff --git a/util.c b/util.c
+index 9db92ed..e1eac78 100644
+--- a/util.c
++++ b/util.c
+@@ -77,7 +77,7 @@ const char *const log_syscalls[] = {
+     "socket",
+     "connect",
+     "send",
+-#elif defined(__riscv)
++#elif defined(__loongarch__) || defined(__riscv)
+ #if defined(__ANDROID__)
+     "connect", "fcntl", "sendto", "socket", "writev",
+ #else
+-- 
+2.43.0
+

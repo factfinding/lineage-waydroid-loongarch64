@@ -1,0 +1,107 @@
+From ea271ad715e95eede95b4944568da53ece194012 Mon Sep 17 00:00:00 2001
+From: noctis <970308389@qq.com>
+Date: Sat, 1 Aug 2026 23:19:17 +0800
+Subject: [PATCH] libavc: add LoongArch64 generic configuration
+
+Change-Id: Ib28ca3a5155126d712fb731259bf295777677290
+---
+ Android.bp | 48 ++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 48 insertions(+)
+
+diff --git a/Android.bp b/Android.bp
+index a8e8a4d..76c7f16 100644
+--- a/Android.bp
++++ b/Android.bp
+@@ -109,6 +109,13 @@ cc_defaults {
+             ],
+         },
+ 
++        loongarch64: {
++            local_include_dirs: [
++                "common/riscv",
++                "encoder/riscv",
++            ],
++        },
++
+         riscv64: {
+             local_include_dirs: [
+                 "common/riscv",
+@@ -193,6 +200,12 @@ cc_defaults {
+             ],
+         },
+ 
++        loongarch64: {
++            local_include_dirs: [
++                "common/riscv",
++            ],
++        },
++
+         riscv64: {
+             local_include_dirs: [
+                 "common/riscv",
+@@ -353,6 +366,15 @@ cc_library_static {
+             ],
+         },
+ 
++        loongarch64: {
++            local_include_dirs: [
++                "common/riscv",
++            ],
++            srcs: [
++                "decoder/riscv/ih264d_function_selector.c",
++            ],
++        },
++
+         riscv64: {
+             local_include_dirs: [
+                 "common/riscv",
+@@ -566,6 +588,12 @@ cc_library_static {
+             ],
+         },
+ 
++        loongarch64: {
++            srcs: [
++                "encoder/riscv/ih264e_function_selector.c",
++            ],
++        },
++
+         riscv64: {
+             srcs: [
+                 "encoder/riscv/ih264e_function_selector.c",
+@@ -720,6 +748,16 @@ cc_library_static {
+             ],
+         },
+ 
++        loongarch64: {
++            local_include_dirs: [
++                "encoder/riscv/svc",
++            ],
++
++            srcs: [
++                "encoder/riscv/svc/isvce_function_selector.c",
++            ],
++        },
++
+         riscv64: {
+             local_include_dirs: [
+                 "encoder/riscv/svc",
+@@ -855,6 +893,16 @@ cc_library_static {
+             ],
+         },
+ 
++        loongarch64: {
++            local_include_dirs: [
++                "decoder/riscv/svc",
++            ],
++
++            srcs: [
++                "decoder/riscv/svc/isvcd_function_selector.c",
++            ],
++        },
++
+         riscv64: {
+             local_include_dirs: [
+                 "decoder/riscv/svc",
+-- 
+2.43.0
+

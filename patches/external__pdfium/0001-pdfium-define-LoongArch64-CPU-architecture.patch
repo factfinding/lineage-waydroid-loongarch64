@@ -1,0 +1,30 @@
+From 151435c71e92a7704092205c81d0bed249a0eb5e Mon Sep 17 00:00:00 2001
+From: noctis <970308389@qq.com>
+Date: Sat, 1 Aug 2026 23:19:17 +0800
+Subject: [PATCH] pdfium: define LoongArch64 CPU architecture
+
+Change-Id: I2a9cbfc02417aea82172a7d4aaf7476433755efc
+---
+ third_party/Android.bp | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/third_party/Android.bp b/third_party/Android.bp
+index 98e176943..b03360bd4 100644
+--- a/third_party/Android.bp
++++ b/third_party/Android.bp
+@@ -46,6 +46,12 @@ cc_library_static {
+                 "-DARCH_CPU_ARM64",
+             ],
+         },
++        loongarch64: {
++            cflags: [
++                "-DARCH_CPU_64_BITS",
++                "-DARCH_CPU_LOONGARCH64",
++            ],
++        },
+         riscv64: {
+             cflags: [
+                 "-DARCH_CPU_64_BITS",
+-- 
+2.43.0
+

@@ -1,0 +1,31 @@
+From 4b7fb15fd17d840af5a1bbbd71a5cb479df133dd Mon Sep 17 00:00:00 2001
+From: noctis <970308389@qq.com>
+Date: Wed, 5 Aug 2026 21:56:15 +0800
+Subject: [PATCH] ndk_translation: avoid LoongArch linker config collision
+
+Install the unused x86 native-bridge config under a private filename on LoongArch64 so Berberis can own the canonical ARM64 guest linker config.
+---
+ Android.bp | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/Android.bp b/Android.bp
+index 0e08b6d..48675bd 100644
+--- a/Android.bp
++++ b/Android.bp
+@@ -368,6 +368,13 @@ prebuilt_etc {
+     name: "ld.config.arm64.txt",
+     sub_dir: ".",
+     src: "prebuilts/etc/ld.config.arm64.txt",
++    arch: {
++        loongarch64: {
++            // Berberis owns the canonical ARM64 guest linker config on this
++            // host architecture. Keep the unused x86 bridge config separate.
++            filename: "ld.config.ndk_translation.arm64.txt",
++        },
++    },
+ }
+ 
+ cc_prebuilt_binary {
+-- 
+2.43.0
+

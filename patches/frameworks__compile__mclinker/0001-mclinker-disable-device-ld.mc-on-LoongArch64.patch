@@ -1,0 +1,32 @@
+From 256e3ffe602513e8d2e7d7f289ef8ac0af0296ab Mon Sep 17 00:00:00 2001
+From: noctis <970308389@qq.com>
+Date: Sun, 2 Aug 2026 08:17:34 +0800
+Subject: [PATCH] mclinker: disable device ld.mc on LoongArch64
+
+The legacy device linker depends on an LLVM tree without a LoongArch backend. Keep the host tool available, but do not create the unsupported LoongArch64 device variant.
+
+Change-Id: I078bb4baa25d6cc0fa9a6a6d0f3de778c61949d6
+---
+ tools/mcld/Android.bp | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/tools/mcld/Android.bp b/tools/mcld/Android.bp
+index 6681aae..9014624 100644
+--- a/tools/mcld/Android.bp
++++ b/tools/mcld/Android.bp
+@@ -38,6 +38,12 @@ cc_binary {
+     host_supported: true,
+     generated_headers: ["mcld-gen-options"],
+ 
++    arch: {
++        loongarch64: {
++            enabled: false,
++        },
++    },
++
+     srcs: ["Main.cpp"],
+ 
+     // arch-specific static libraries depend on libmcldTarget.
+-- 
+2.43.0
+

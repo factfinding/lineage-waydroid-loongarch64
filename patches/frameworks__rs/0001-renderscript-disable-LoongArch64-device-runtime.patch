@@ -1,0 +1,44 @@
+From 920bfc598ac133f0f412ed522f2252ad5b67724b Mon Sep 17 00:00:00 2001
+From: noctis <970308389@qq.com>
+Date: Sat, 1 Aug 2026 17:46:23 +0800
+Subject: [PATCH 1/2] renderscript: disable LoongArch64 device runtime
+
+The legacy RenderScript stack relies on libbcc's old LLVM, which has no LoongArch backend. Match the existing RISC-V behavior and disable the device runtime and CPU reference implementation rather than selecting an invalid target triple.
+
+Change-Id: I4c30789eb622f7bd5dfd1e706a0479cdb049f14d
+---
+ Android.bp         | 3 +++
+ cpu_ref/Android.bp | 3 +++
+ 2 files changed, 6 insertions(+)
+
+diff --git a/Android.bp b/Android.bp
+index d28392e3..448f4dbc 100644
+--- a/Android.bp
++++ b/Android.bp
+@@ -20,6 +20,9 @@ cc_defaults {
+         "-Wno-unused-variable",
+     ],
+     arch: {
++        loongarch64: {
++            enabled: false,
++        },
+         riscv64: {
+             enabled: false,
+         },
+diff --git a/cpu_ref/Android.bp b/cpu_ref/Android.bp
+index ae4c094b..7a705433 100644
+--- a/cpu_ref/Android.bp
++++ b/cpu_ref/Android.bp
+@@ -82,6 +82,9 @@ cc_library_shared {
+                 ],
+             },
+         },
++        loongarch64: {
++            enabled: false,
++        },
+         riscv64: {
+             enabled: false,
+         },
+-- 
+2.43.0
+

@@ -1,0 +1,47 @@
+From 3ea5b9dd5063d919e77a99cac09197857bb2b79a Mon Sep 17 00:00:00 2001
+From: noctis <970308389@qq.com>
+Date: Sat, 1 Aug 2026 23:19:17 +0800
+Subject: [PATCH] libhevc: add LoongArch64 generic configuration
+
+Change-Id: I708cc70a9de0a51d2eebdca849e101eff814b23a
+---
+ Android.bp | 16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
+
+diff --git a/Android.bp b/Android.bp
+index 7a3b885..746b094 100644
+--- a/Android.bp
++++ b/Android.bp
+@@ -389,6 +389,16 @@ cc_library_static {
+                 "decoder/x86/ihevcd_it_rec_dc_ssse3_intr.c",
+             ],
+         },
++        loongarch64: {
++            local_include_dirs: [
++                "common/riscv64",
++            ],
++
++            srcs: [
++                "decoder/riscv64/ihevcd_function_selector.c",
++                "decoder/riscv64/ihevcd_function_selector_generic.c",
++            ],
++        },
+         riscv64: {
+             local_include_dirs: [
+                 "common/riscv64",
+@@ -781,6 +791,12 @@ cc_library_static {
+             ],
+         },
+ 
++        loongarch64: {
++            local_include_dirs: [
++                "common/riscv64",
++            ],
++        },
++
+         riscv64: {
+             local_include_dirs: [
+                 "common/riscv64",
+-- 
+2.43.0
+

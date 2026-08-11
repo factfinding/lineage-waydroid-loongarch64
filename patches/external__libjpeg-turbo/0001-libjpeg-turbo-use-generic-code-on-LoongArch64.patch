@@ -1,0 +1,27 @@
+From 2854a483d31b85b0660c64e0729ad362fb2f2b80 Mon Sep 17 00:00:00 2001
+From: noctis <970308389@qq.com>
+Date: Sun, 19 Jul 2026 11:01:23 +0800
+Subject: [PATCH] libjpeg-turbo: use generic code on LoongArch64
+
+Change-Id: I1f9001022cc57719c5d0272ba683394de1b2f40e
+---
+ Android.bp | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/Android.bp b/Android.bp
+index 267de30d..3ec8fbfd 100644
+--- a/Android.bp
++++ b/Android.bp
+@@ -252,6 +252,9 @@ cc_defaults {
+         riscv64: {
+             srcs: ["jsimd_none.c"],
+         },
++        loongarch64: {
++            srcs: ["jsimd_none.c"],
++        },
+     },
+ 
+     target: {
+-- 
+2.43.0
+

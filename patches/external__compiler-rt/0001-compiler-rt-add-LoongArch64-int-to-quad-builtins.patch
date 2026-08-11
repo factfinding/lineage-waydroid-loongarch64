@@ -1,0 +1,32 @@
+From ba71df96ba26baac987e1094c43701bd37f3b52f Mon Sep 17 00:00:00 2001
+From: noctis <970308389@qq.com>
+Date: Sun, 19 Jul 2026 16:01:22 +0800
+Subject: [PATCH 1/2] compiler-rt: add LoongArch64 int-to-quad builtins
+
+Build signed and unsigned 64-bit integer to IEEE quad conversion helpers for Android LoongArch64. These are required by Bionic's long-double libm implementation.\n\nTest: m -j8 libcompiler_rt libm libultrahdr
+
+Change-Id: I861de927333298a8edb0fca1c3e0631cb04f7322
+---
+ Android.bp | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/Android.bp b/Android.bp
+index 9a0f6249..56da6ce3 100644
+--- a/Android.bp
++++ b/Android.bp
+@@ -404,6 +404,12 @@ cc_library {
+         android_x86_64: {
+             srcs: ["lib/builtins/ppc/floatditf.c"],
+         },
++        android_loongarch64: {
++            srcs: [
++                "lib/builtins/floatditf.c",
++                "lib/builtins/floatunditf.c",
++            ],
++        },
+         windows: {
+             enabled: true,
+             // Only build enable_execute_stack.c on non-Windows hosts.
+-- 
+2.43.0
+

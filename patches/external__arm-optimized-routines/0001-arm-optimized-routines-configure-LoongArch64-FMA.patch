@@ -1,0 +1,29 @@
+From 52907aeda727baaa4e2546cd2e537ca28c7fccd6 Mon Sep 17 00:00:00 2001
+From: noctis <970308389@qq.com>
+Date: Sat, 1 Aug 2026 23:19:17 +0800
+Subject: [PATCH] arm-optimized-routines: configure LoongArch64 FMA
+
+Change-Id: I4af195d91bad7952e803fc53a6030e8204ed649a
+---
+ Android.bp | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/Android.bp b/Android.bp
+index a68b16c..6a03d25 100644
+--- a/Android.bp
++++ b/Android.bp
+@@ -120,6 +120,11 @@ cc_library_static {
+                 "-DHAVE_FAST_FMA=1",
+             ],
+         },
++        loongarch64: {
++            cflags: [
++                "-DHAVE_FAST_FMA=1",
++            ],
++        },
+         riscv64: {
+             cflags: [
+                 "-DHAVE_FAST_FMA=1",
+-- 
+2.43.0
+

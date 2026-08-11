@@ -1,0 +1,328 @@
+From 0afa4cd3fef10474cf4362858b5ce6766e982856 Mon Sep 17 00:00:00 2001
+From: noctis <970308389@qq.com>
+Date: Sat, 1 Aug 2026 14:36:42 +0800
+Subject: [PATCH] crosvm: disable unsupported seccomp rules on LoongArch64
+
+The generated seccomp policies only cover x86_64 and aarch64. Explicitly disable their architecture-specific genrules for LoongArch64, matching the existing RISC-V behavior.
+
+Change-Id: Icda505a9d116b7a90044302016ee81269fde8fc8
+---
+ jail/seccomp/Android.bp | 93 +++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 93 insertions(+)
+
+diff --git a/jail/seccomp/Android.bp b/jail/seccomp/Android.bp
+index 6c91906b4..6023fd2ae 100644
+--- a/jail/seccomp/Android.bp
++++ b/jail/seccomp/Android.bp
+@@ -116,6 +116,9 @@ prebuilt_etc {
+         android_riscv64: {
+             enabled: false,
+         },
++        android_loongarch64: {
++            enabled: false,
++        },
+     },
+ }
+ 
+@@ -168,6 +171,9 @@ prebuilt_etc {
+         android_riscv64: {
+             enabled: false,
+         },
++        android_loongarch64: {
++            enabled: false,
++        },
+     },
+ }
+ 
+@@ -220,6 +226,9 @@ prebuilt_etc {
+         android_riscv64: {
+             enabled: false,
+         },
++        android_loongarch64: {
++            enabled: false,
++        },
+     },
+ }
+ 
+@@ -272,6 +281,9 @@ prebuilt_etc {
+         android_riscv64: {
+             enabled: false,
+         },
++        android_loongarch64: {
++            enabled: false,
++        },
+     },
+ }
+ 
+@@ -324,6 +336,9 @@ prebuilt_etc {
+         android_riscv64: {
+             enabled: false,
+         },
++        android_loongarch64: {
++            enabled: false,
++        },
+     },
+ }
+ 
+@@ -362,6 +377,9 @@ prebuilt_etc {
+         android_riscv64: {
+             enabled: false,
+         },
++        android_loongarch64: {
++            enabled: false,
++        },
+     },
+ }
+ 
+@@ -414,6 +432,9 @@ prebuilt_etc {
+         android_riscv64: {
+             enabled: false,
+         },
++        android_loongarch64: {
++            enabled: false,
++        },
+     },
+ }
+ 
+@@ -452,6 +473,9 @@ prebuilt_etc {
+         android_riscv64: {
+             enabled: false,
+         },
++        android_loongarch64: {
++            enabled: false,
++        },
+     },
+ }
+ 
+@@ -504,6 +528,9 @@ prebuilt_etc {
+         android_riscv64: {
+             enabled: false,
+         },
++        android_loongarch64: {
++            enabled: false,
++        },
+     },
+ }
+ 
+@@ -556,6 +583,9 @@ prebuilt_etc {
+         android_riscv64: {
+             enabled: false,
+         },
++        android_loongarch64: {
++            enabled: false,
++        },
+     },
+ }
+ 
+@@ -608,6 +638,9 @@ prebuilt_etc {
+         android_riscv64: {
+             enabled: false,
+         },
++        android_loongarch64: {
++            enabled: false,
++        },
+     },
+ }
+ 
+@@ -646,6 +679,9 @@ prebuilt_etc {
+         android_riscv64: {
+             enabled: false,
+         },
++        android_loongarch64: {
++            enabled: false,
++        },
+     },
+ }
+ 
+@@ -698,6 +734,9 @@ prebuilt_etc {
+         android_riscv64: {
+             enabled: false,
+         },
++        android_loongarch64: {
++            enabled: false,
++        },
+     },
+ }
+ 
+@@ -750,6 +789,9 @@ prebuilt_etc {
+         android_riscv64: {
+             enabled: false,
+         },
++        android_loongarch64: {
++            enabled: false,
++        },
+     },
+ }
+ 
+@@ -788,6 +830,9 @@ prebuilt_etc {
+         android_riscv64: {
+             enabled: false,
+         },
++        android_loongarch64: {
++            enabled: false,
++        },
+     },
+ }
+ 
+@@ -826,6 +871,9 @@ prebuilt_etc {
+         android_riscv64: {
+             enabled: false,
+         },
++        android_loongarch64: {
++            enabled: false,
++        },
+     },
+ }
+ 
+@@ -878,6 +926,9 @@ prebuilt_etc {
+         android_riscv64: {
+             enabled: false,
+         },
++        android_loongarch64: {
++            enabled: false,
++        },
+     },
+ }
+ 
+@@ -930,6 +981,9 @@ prebuilt_etc {
+         android_riscv64: {
+             enabled: false,
+         },
++        android_loongarch64: {
++            enabled: false,
++        },
+     },
+ }
+ 
+@@ -982,6 +1036,9 @@ prebuilt_etc {
+         android_riscv64: {
+             enabled: false,
+         },
++        android_loongarch64: {
++            enabled: false,
++        },
+     },
+ }
+ 
+@@ -1034,6 +1091,9 @@ prebuilt_etc {
+         android_riscv64: {
+             enabled: false,
+         },
++        android_loongarch64: {
++            enabled: false,
++        },
+     },
+ }
+ 
+@@ -1086,6 +1146,9 @@ prebuilt_etc {
+         android_riscv64: {
+             enabled: false,
+         },
++        android_loongarch64: {
++            enabled: false,
++        },
+     },
+ }
+ 
+@@ -1138,6 +1201,9 @@ prebuilt_etc {
+         android_riscv64: {
+             enabled: false,
+         },
++        android_loongarch64: {
++            enabled: false,
++        },
+     },
+ }
+ 
+@@ -1190,6 +1256,9 @@ prebuilt_etc {
+         android_riscv64: {
+             enabled: false,
+         },
++        android_loongarch64: {
++            enabled: false,
++        },
+     },
+ }
+ 
+@@ -1228,6 +1297,9 @@ prebuilt_etc {
+         android_riscv64: {
+             enabled: false,
+         },
++        android_loongarch64: {
++            enabled: false,
++        },
+     },
+ }
+ 
+@@ -1280,6 +1352,9 @@ prebuilt_etc {
+         android_riscv64: {
+             enabled: false,
+         },
++        android_loongarch64: {
++            enabled: false,
++        },
+     },
+ }
+ 
+@@ -1318,6 +1393,9 @@ prebuilt_etc {
+         android_riscv64: {
+             enabled: false,
+         },
++        android_loongarch64: {
++            enabled: false,
++        },
+     },
+ }
+ 
+@@ -1370,6 +1448,9 @@ prebuilt_etc {
+         android_riscv64: {
+             enabled: false,
+         },
++        android_loongarch64: {
++            enabled: false,
++        },
+     },
+ }
+ 
+@@ -1422,6 +1503,9 @@ prebuilt_etc {
+         android_riscv64: {
+             enabled: false,
+         },
++        android_loongarch64: {
++            enabled: false,
++        },
+     },
+ }
+ 
+@@ -1460,6 +1544,9 @@ prebuilt_etc {
+         android_riscv64: {
+             enabled: false,
+         },
++        android_loongarch64: {
++            enabled: false,
++        },
+     },
+ }
+ 
+@@ -1512,6 +1599,9 @@ prebuilt_etc {
+         android_riscv64: {
+             enabled: false,
+         },
++        android_loongarch64: {
++            enabled: false,
++        },
+     },
+ }
+ 
+@@ -1564,5 +1654,8 @@ prebuilt_etc {
+         android_riscv64: {
+             enabled: false,
+         },
++        android_loongarch64: {
++            enabled: false,
++        },
+     },
+ }
+-- 
+2.43.0
+

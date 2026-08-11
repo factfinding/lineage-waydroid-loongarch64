@@ -1,0 +1,84 @@
+From e4c4f1b4fa8133956005ad5f621e4eca28438f2e Mon Sep 17 00:00:00 2001
+From: noctis <970308389@qq.com>
+Date: Wed, 5 Aug 2026 19:03:17 +0800
+Subject: [PATCH 2/2] renderscript: support ARM64 bridge on LoongArch64
+
+Change-Id: I44ef6c8e761cd193d697ca5c88f1ad7e4905e744
+---
+ Android.bp | 32 ++++++++++++++++++++++++++++++++
+ 1 file changed, 32 insertions(+)
+
+diff --git a/Android.bp b/Android.bp
+index 448f4dbc..a7fc763a 100644
+--- a/Android.bp
++++ b/Android.bp
+@@ -259,6 +259,23 @@ cc_library_shared {
+         arm: {
+             required: ["libclcore_neon.bc"],
+         },
++        loongarch64: {
++            // RenderScript is disabled on LoongArch64 because libbcc has no
++            // backend for the architecture.  Do not pull in clcore bitcode
++            // prebuilts for the unused native runtime; no LoongArch64
++            // prebuilts exist.  Native-bridge ARM64 variants retain the
++            // common required list and use the ARM64 prebuilts below.
++            target: {
++                platform: {
++                    exclude_required: [
++                        "libclcore.bc",
++                        "libclcore_debug.bc",
++                        "libclcore_debug_g.bc",
++                        "libclcore_g.bc",
++                    ],
++                },
++            },
++        },
+         x86: {
+             required: ["libclcore_x86.bc"],
+         },
+@@ -353,6 +370,12 @@ prebuilt_renderscript_bitcode {
+         arm64: {
+             src: "driver/runtime/prebuilts/arm/lib64/libclcore.bc",
+         },
++        loongarch64: {
++            // The native RenderScript runtime is disabled on LoongArch64.
++            // This shared install path is consumed by the ARM64 native-bridge
++            // libRS variant, so install its ARM64 bitcode.
++            src: "driver/runtime/prebuilts/arm/lib64/libclcore.bc",
++        },
+         x86: {
+             src: "driver/runtime/prebuilts/x86/lib/libclcore.bc",
+         },
+@@ -371,6 +394,9 @@ prebuilt_renderscript_bitcode {
+         arm64: {
+             src: "driver/runtime/prebuilts/arm/lib64/libclcore_debug.bc",
+         },
++        loongarch64: {
++            src: "driver/runtime/prebuilts/arm/lib64/libclcore_debug.bc",
++        },
+         x86: {
+             src: "driver/runtime/prebuilts/x86/lib/libclcore_debug.bc",
+         },
+@@ -428,6 +454,9 @@ prebuilt_renderscript_bitcode {
+         arm64: {
+             src: "driver/runtime/prebuilts/arm/lib64/libclcore_g.bc",
+         },
++        loongarch64: {
++            src: "driver/runtime/prebuilts/arm/lib64/libclcore_g.bc",
++        },
+         x86: {
+             src: "driver/runtime/prebuilts/x86/lib/libclcore_g.bc",
+         },
+@@ -446,6 +475,9 @@ prebuilt_renderscript_bitcode {
+         arm64: {
+             src: "driver/runtime/prebuilts/arm/lib64/libclcore_debug_g.bc",
+         },
++        loongarch64: {
++            src: "driver/runtime/prebuilts/arm/lib64/libclcore_debug_g.bc",
++        },
+         x86: {
+             src: "driver/runtime/prebuilts/x86/lib/libclcore_debug_g.bc",
+         },
+-- 
+2.43.0
+

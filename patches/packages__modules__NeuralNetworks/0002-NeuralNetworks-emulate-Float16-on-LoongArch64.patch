@@ -1,0 +1,335 @@
+From 71ae936f7f14c12638150b95dac937253b0b1897 Mon Sep 17 00:00:00 2001
+From: noctis <970308389@qq.com>
+Date: Sun, 2 Aug 2026 00:41:08 +0800
+Subject: [PATCH 2/2] NeuralNetworks: emulate Float16 on LoongArch64
+
+Clang does not currently expose _Float16 for the LoongArch Android target, while NNAPI uses it throughout its reference CPU implementation. Provide a binary16-compatible wrapper backed by Eigen::half and enable it only for LoongArch64 device variants.\n\nPreserve implicit conversions, arithmetic promotion, comparisons, and constexpr construction needed by the existing NNAPI sources.
+
+Change-Id: Ia9df3f722d97f784bd4c1bbf15f7477a6eefae55
+---
+ common/Android.bp                       |   5 +
+ common/CpuExecutor.cpp                  |   2 +-
+ common/cpu_operations/Softmax.cpp       |   2 +-
+ common/types/Android.bp                 |   8 +
+ common/types/include/LoongArchFloat16.h | 241 ++++++++++++++++++++++++
+ 5 files changed, 256 insertions(+), 2 deletions(-)
+ create mode 100644 common/types/include/LoongArchFloat16.h
+
+diff --git a/common/Android.bp b/common/Android.bp
+index 77b94a12b..8c887144d 100644
+--- a/common/Android.bp
++++ b/common/Android.bp
+@@ -190,6 +190,11 @@ cc_defaults {
+             ],
+         },
+     },
++    arch: {
++        loongarch64: {
++            cflags: ["-include LoongArchFloat16.h"],
++        },
++    },
+     header_libs: [
+         "gemmlowp_headers",
+         "libeigen",
+diff --git a/common/CpuExecutor.cpp b/common/CpuExecutor.cpp
+index 15bffc4d3..751c9e019 100644
+--- a/common/CpuExecutor.cpp
++++ b/common/CpuExecutor.cpp
+@@ -1264,7 +1264,7 @@ int CpuExecutor::executeOperation([[maybe_unused]] const Operation& operation,
+                                      reinterpret_cast<const int32_t*>(paddings.buffer), pad_value,
+                                      reinterpret_cast<float*>(output.buffer), outShape);
+             } else if (input.type == OperandType::TENSOR_FLOAT16) {
+-                _Float16 pad_value = isV2 ? getScalarData<_Float16>(operands[ins[2]]) : 0;
++                _Float16 pad_value = isV2 ? getScalarData<_Float16>(operands[ins[2]]) : _Float16{0};
+                 success = padGeneric(reinterpret_cast<const _Float16*>(input.buffer), input.shape(),
+                                      reinterpret_cast<const int32_t*>(paddings.buffer),
+                                      static_cast<_Float16>(pad_value),
+diff --git a/common/cpu_operations/Softmax.cpp b/common/cpu_operations/Softmax.cpp
+index fbc46ed2e..94d13979c 100644
+--- a/common/cpu_operations/Softmax.cpp
++++ b/common/cpu_operations/Softmax.cpp
+@@ -231,7 +231,7 @@ bool softmaxQuant8(const T* inputData, const Shape& inputShape, const float beta
+ bool prepare(IOperationExecutionContext* context) {
+     Shape input = context->getInputShape(kInputTensor);
+     float beta = (input.type == OperandType::TENSOR_FLOAT16)
+-                         ? context->getInputValue<_Float16>(kBetaScalar)
++                         ? static_cast<float>(context->getInputValue<_Float16>(kBetaScalar))
+                          : context->getInputValue<float>(kBetaScalar);
+     NN_RET_CHECK_LE(getNumberOfDimensions(input), 4u);
+     NN_RET_CHECK_GT(beta, 0.0f);
+diff --git a/common/types/Android.bp b/common/types/Android.bp
+index 6a35c1b70..9f05e3d32 100644
+--- a/common/types/Android.bp
++++ b/common/types/Android.bp
+@@ -49,6 +49,11 @@ cc_library_headers {
+ cc_defaults {
+     name: "neuralnetworks_types_defaults",
+     defaults: ["neuralnetworks_utils_defaults"],
++    arch: {
++        loongarch64: {
++            cflags: ["-include LoongArchFloat16.h"],
++        },
++    },
+     srcs: [
+         "operations/src/*.cpp",
+         "src/OperationsUtils.cpp",
+@@ -72,6 +77,9 @@ cc_defaults {
+         "operations/include",
+     ],
+     export_include_dirs: ["include"],
++    header_libs: [
++        "libeigen",
++    ],
+     shared_libs: [
+         "libbase",
+         "libcutils",
+diff --git a/common/types/include/LoongArchFloat16.h b/common/types/include/LoongArchFloat16.h
+new file mode 100644
+index 000000000..f4d96e491
+--- /dev/null
++++ b/common/types/include/LoongArchFloat16.h
+@@ -0,0 +1,241 @@
++/*
++ * Copyright 2026 The Android Open Source Project
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *      http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++#pragma once
++
++#include <Eigen/Core>
++#include <bit>
++#include <cstdint>
++#include <type_traits>
++
++// Clang does not expose _Float16 for LoongArch yet. Eigen::half has the same
++// two-byte IEEE 754 binary16 representation and supplies portable arithmetic.
++// Its conversions from arithmetic types are explicit, while _Float16 permits
++// implicit conversions, so retain those language semantics in a thin wrapper.
++namespace android::nn::loongarch {
++
++struct Float16 : public Eigen::half {
++   private:
++    static constexpr uint16_t floatToHalfBits(float value) {
++        const uint32_t bits = std::bit_cast<uint32_t>(value);
++        const uint16_t sign = static_cast<uint16_t>((bits >> 16) & 0x8000);
++        const uint32_t exponent = (bits >> 23) & 0xff;
++        uint32_t significand = bits & 0x7fffff;
++
++        if (exponent == 0xff) {
++            return sign | (significand == 0 ? 0x7c00 : 0x7e00);
++        }
++
++        const int halfExponent = static_cast<int>(exponent) - 127 + 15;
++        if (halfExponent >= 31) {
++            return sign | 0x7c00;
++        }
++        if (halfExponent <= 0) {
++            if (halfExponent < -10) {
++                return sign;
++            }
++            significand |= 0x800000;
++            const int shift = 14 - halfExponent;
++            uint32_t halfSignificand = significand >> shift;
++            const uint32_t remainder = significand & ((uint32_t{1} << shift) - 1);
++            const uint32_t halfway = uint32_t{1} << (shift - 1);
++            if (remainder > halfway || (remainder == halfway && (halfSignificand & 1) != 0)) {
++                ++halfSignificand;
++            }
++            return sign | static_cast<uint16_t>(halfSignificand);
++        }
++
++        uint32_t halfSignificand = significand >> 13;
++        const uint32_t remainder = significand & 0x1fff;
++        if (remainder > 0x1000 || (remainder == 0x1000 && (halfSignificand & 1) != 0)) {
++            ++halfSignificand;
++        }
++        return sign | static_cast<uint16_t>((halfExponent << 10) + halfSignificand);
++    }
++
++   public:
++    Float16() = default;
++    Float16(const Float16&) = default;
++    Float16(const Eigen::half& value) : Eigen::half(value) {}
++
++    template <typename T, std::enable_if_t<std::is_arithmetic_v<T>, int> = 0>
++    constexpr Float16(T value)
++        : Eigen::half(Eigen::half_impl::raw_uint16_to_half(
++                  floatToHalfBits(static_cast<float>(value)))) {}
++
++    Float16& operator=(const Float16&) = default;
++
++    Float16& operator=(const Eigen::half& value) {
++        x = value.x;
++        return *this;
++    }
++
++    template <typename T, std::enable_if_t<std::is_arithmetic_v<T>, int> = 0>
++    Float16& operator=(T value) {
++        x = Eigen::half(static_cast<float>(value)).x;
++        return *this;
++    }
++
++    Float16& operator+=(Float16 value) {
++        return *this = static_cast<float>(*this) + static_cast<float>(value);
++    }
++    Float16& operator-=(Float16 value) {
++        return *this = static_cast<float>(*this) - static_cast<float>(value);
++    }
++    Float16& operator*=(Float16 value) {
++        return *this = static_cast<float>(*this) * static_cast<float>(value);
++    }
++    Float16& operator/=(Float16 value) {
++        return *this = static_cast<float>(*this) / static_cast<float>(value);
++    }
++
++    template <typename T, std::enable_if_t<std::is_arithmetic_v<T>, int> = 0>
++    Float16& operator+=(T value) {
++        return *this = static_cast<float>(*this) + value;
++    }
++
++    template <typename T, std::enable_if_t<std::is_arithmetic_v<T>, int> = 0>
++    Float16& operator-=(T value) {
++        return *this = static_cast<float>(*this) - value;
++    }
++
++    template <typename T, std::enable_if_t<std::is_arithmetic_v<T>, int> = 0>
++    Float16& operator*=(T value) {
++        return *this = static_cast<float>(*this) * value;
++    }
++
++    template <typename T, std::enable_if_t<std::is_arithmetic_v<T>, int> = 0>
++    Float16& operator/=(T value) {
++        return *this = static_cast<float>(*this) / value;
++    }
++
++    friend Float16 operator+(Float16 lhs, Float16 rhs) { return lhs += rhs; }
++    friend Float16 operator-(Float16 lhs, Float16 rhs) { return lhs -= rhs; }
++    friend Float16 operator*(Float16 lhs, Float16 rhs) { return lhs *= rhs; }
++    friend Float16 operator/(Float16 lhs, Float16 rhs) { return lhs /= rhs; }
++    friend constexpr Float16 operator-(Float16 value) {
++        value.x ^= 0x8000;
++        return value;
++    }
++
++    template <typename T, std::enable_if_t<std::is_arithmetic_v<T>, int> = 0>
++    friend auto operator+(Float16 lhs, T rhs) {
++        return static_cast<float>(lhs) + rhs;
++    }
++
++    template <typename T, std::enable_if_t<std::is_arithmetic_v<T>, int> = 0>
++    friend auto operator-(Float16 lhs, T rhs) {
++        return static_cast<float>(lhs) - rhs;
++    }
++
++    template <typename T, std::enable_if_t<std::is_arithmetic_v<T>, int> = 0>
++    friend auto operator*(Float16 lhs, T rhs) {
++        return static_cast<float>(lhs) * rhs;
++    }
++
++    template <typename T, std::enable_if_t<std::is_arithmetic_v<T>, int> = 0>
++    friend auto operator/(Float16 lhs, T rhs) {
++        return static_cast<float>(lhs) / rhs;
++    }
++
++    template <typename T, std::enable_if_t<std::is_arithmetic_v<T>, int> = 0>
++    friend auto operator+(T lhs, Float16 rhs) {
++        return lhs + static_cast<float>(rhs);
++    }
++
++    template <typename T, std::enable_if_t<std::is_arithmetic_v<T>, int> = 0>
++    friend auto operator-(T lhs, Float16 rhs) {
++        return lhs - static_cast<float>(rhs);
++    }
++
++    template <typename T, std::enable_if_t<std::is_arithmetic_v<T>, int> = 0>
++    friend auto operator*(T lhs, Float16 rhs) {
++        return lhs * static_cast<float>(rhs);
++    }
++
++    template <typename T, std::enable_if_t<std::is_arithmetic_v<T>, int> = 0>
++    friend auto operator/(T lhs, Float16 rhs) {
++        return lhs / static_cast<float>(rhs);
++    }
++
++    friend bool operator==(Float16 lhs, Float16 rhs) {
++        return static_cast<float>(lhs) == static_cast<float>(rhs);
++    }
++    friend bool operator!=(Float16 lhs, Float16 rhs) { return !(lhs == rhs); }
++    friend bool operator<(Float16 lhs, Float16 rhs) {
++        return static_cast<float>(lhs) < static_cast<float>(rhs);
++    }
++    friend bool operator<=(Float16 lhs, Float16 rhs) { return !(rhs < lhs); }
++    friend bool operator>(Float16 lhs, Float16 rhs) { return rhs < lhs; }
++    friend bool operator>=(Float16 lhs, Float16 rhs) { return !(lhs < rhs); }
++
++    template <typename T, std::enable_if_t<std::is_arithmetic_v<T>, int> = 0>
++    friend bool operator==(Float16 lhs, T rhs) {
++        return static_cast<float>(lhs) == rhs;
++    }
++    template <typename T, std::enable_if_t<std::is_arithmetic_v<T>, int> = 0>
++    friend bool operator!=(Float16 lhs, T rhs) {
++        return !(lhs == rhs);
++    }
++    template <typename T, std::enable_if_t<std::is_arithmetic_v<T>, int> = 0>
++    friend bool operator<(Float16 lhs, T rhs) {
++        return static_cast<float>(lhs) < rhs;
++    }
++    template <typename T, std::enable_if_t<std::is_arithmetic_v<T>, int> = 0>
++    friend bool operator<=(Float16 lhs, T rhs) {
++        return static_cast<float>(lhs) <= rhs;
++    }
++    template <typename T, std::enable_if_t<std::is_arithmetic_v<T>, int> = 0>
++    friend bool operator>(Float16 lhs, T rhs) {
++        return static_cast<float>(lhs) > rhs;
++    }
++    template <typename T, std::enable_if_t<std::is_arithmetic_v<T>, int> = 0>
++    friend bool operator>=(Float16 lhs, T rhs) {
++        return static_cast<float>(lhs) >= rhs;
++    }
++
++    template <typename T, std::enable_if_t<std::is_arithmetic_v<T>, int> = 0>
++    friend bool operator==(T lhs, Float16 rhs) {
++        return rhs == lhs;
++    }
++    template <typename T, std::enable_if_t<std::is_arithmetic_v<T>, int> = 0>
++    friend bool operator!=(T lhs, Float16 rhs) {
++        return !(lhs == rhs);
++    }
++    template <typename T, std::enable_if_t<std::is_arithmetic_v<T>, int> = 0>
++    friend bool operator<(T lhs, Float16 rhs) {
++        return lhs < static_cast<float>(rhs);
++    }
++    template <typename T, std::enable_if_t<std::is_arithmetic_v<T>, int> = 0>
++    friend bool operator<=(T lhs, Float16 rhs) {
++        return lhs <= static_cast<float>(rhs);
++    }
++    template <typename T, std::enable_if_t<std::is_arithmetic_v<T>, int> = 0>
++    friend bool operator>(T lhs, Float16 rhs) {
++        return lhs > static_cast<float>(rhs);
++    }
++    template <typename T, std::enable_if_t<std::is_arithmetic_v<T>, int> = 0>
++    friend bool operator>=(T lhs, Float16 rhs) {
++        return lhs >= static_cast<float>(rhs);
++    }
++};
++
++static_assert(sizeof(Float16) == sizeof(uint16_t));
++static_assert(alignof(Float16) == alignof(uint16_t));
++
++}  // namespace android::nn::loongarch
++
++#define _Float16 ::android::nn::loongarch::Float16
+-- 
+2.43.0
+

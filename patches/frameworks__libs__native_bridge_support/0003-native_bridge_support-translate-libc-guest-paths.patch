@@ -1,0 +1,27 @@
+From b7c47d457e9f47afa7a6e2dc4347335e8d70a11e Mon Sep 17 00:00:00 2001
+From: noctis <970308389@qq.com>
+Date: Fri, 7 Aug 2026 12:50:01 +0800
+Subject: [PATCH 3/3] native_bridge_support: translate libc++ guest paths
+
+The guest linker path translation table covers libstdc++ but not the libc++ runtime used by Android 16 app_process. Translate absolute libc++ system paths into the guest ABI directory as well.
+
+Change-Id: I551fa977892172c206d3b9decdc489823d6e86f9
+---
+ android_api/linker/linker_translate_path.cpp | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/android_api/linker/linker_translate_path.cpp b/android_api/linker/linker_translate_path.cpp
+index 6f69645..1dc45a7 100644
+--- a/android_api/linker/linker_translate_path.cpp
++++ b/android_api/linker/linker_translate_path.cpp
+@@ -81,6 +81,7 @@ bool translateSystemPathToApexPath(const char* name, std::string* out_name) {
+     SYSTEM_LIB("libandroid.so"),
+     SYSTEM_LIB("libbinder_ndk.so"),
+     SYSTEM_LIB("libc.so"),
++    SYSTEM_LIB("libc++.so"),
+     SYSTEM_LIB("libcamera2ndk.so"),
+     SYSTEM_LIB("libdl.so"),
+     SYSTEM_LIB("libjnigraphics.so"),
+-- 
+2.43.0
+

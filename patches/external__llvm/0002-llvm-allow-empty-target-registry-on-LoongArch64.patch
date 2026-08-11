@@ -1,0 +1,70 @@
+From 26fd62307e9869d398fad34391225f5c308fbd22 Mon Sep 17 00:00:00 2001
+From: noctis <970308389@qq.com>
+Date: Sun, 19 Jul 2026 20:30:56 +0800
+Subject: [PATCH 2/3] llvm: allow empty target registry on LoongArch64
+
+The device LLVM snapshot predates the LoongArch backend, but its generated target registry headers reject every unknown host architecture. Allow LoongArch64 to enumerate no native targets so target-independent LLVM libraries can still be built without referencing unavailable initializer symbols.
+
+Change-Id: I45cf36bbc4dd732bf1b68c0ccbf2ca1644382110
+---
+ device/include/llvm/Config/AsmParsers.def    | 2 ++
+ device/include/llvm/Config/AsmPrinters.def   | 2 ++
+ device/include/llvm/Config/Disassemblers.def | 2 ++
+ device/include/llvm/Config/Targets.def       | 2 ++
+ 4 files changed, 8 insertions(+)
+
+diff --git a/device/include/llvm/Config/AsmParsers.def b/device/include/llvm/Config/AsmParsers.def
+index 845cb51a1b9..cfabdc169a8 100755
+--- a/device/include/llvm/Config/AsmParsers.def
++++ b/device/include/llvm/Config/AsmParsers.def
+@@ -40,6 +40,8 @@
+ #elif defined(__aarch64__)
+   LLVM_ASM_PARSER(ARM)
+   LLVM_ASM_PARSER(AArch64)
++#elif defined(__loongarch__)
++  /* This LLVM snapshot has no LoongArch backend. */
+ #else
+ #  error Unsupported TARGET_ARCH for LLVM_ASM_PARSER
+ #endif
+diff --git a/device/include/llvm/Config/AsmPrinters.def b/device/include/llvm/Config/AsmPrinters.def
+index 001c795d9ca..4f3d5846aaf 100755
+--- a/device/include/llvm/Config/AsmPrinters.def
++++ b/device/include/llvm/Config/AsmPrinters.def
+@@ -40,6 +40,8 @@
+ #elif defined(__aarch64__)
+   LLVM_ASM_PRINTER(ARM)
+   LLVM_ASM_PRINTER(AArch64)
++#elif defined(__loongarch__)
++  /* This LLVM snapshot has no LoongArch backend. */
+ #else
+ #  error Unsupported TARGET_ARCH for LLVM_ASM_PRINTER
+ #endif
+diff --git a/device/include/llvm/Config/Disassemblers.def b/device/include/llvm/Config/Disassemblers.def
+index 6393b42a831..0ee6c09b00a 100755
+--- a/device/include/llvm/Config/Disassemblers.def
++++ b/device/include/llvm/Config/Disassemblers.def
+@@ -40,6 +40,8 @@
+ #elif defined(__aarch64__)
+   LLVM_DISASSEMBLER(ARM)
+   LLVM_DISASSEMBLER(AArch64)
++#elif defined(__loongarch__)
++  /* This LLVM snapshot has no LoongArch backend. */
+ #else
+ #  error Unsupported TARGET_ARCH for LLVM_DISASSEMBLER
+ #endif
+diff --git a/device/include/llvm/Config/Targets.def b/device/include/llvm/Config/Targets.def
+index fe326530cfc..25537fbb15a 100755
+--- a/device/include/llvm/Config/Targets.def
++++ b/device/include/llvm/Config/Targets.def
+@@ -39,6 +39,8 @@
+ #elif defined(__aarch64__)
+   LLVM_TARGET(ARM)
+   LLVM_TARGET(AArch64)
++#elif defined(__loongarch__)
++  /* This LLVM snapshot has no LoongArch backend. */
+ #else
+ #  error Unsupported TARGET_ARCH for LLVM_TARGET
+ #endif
+-- 
+2.43.0
+

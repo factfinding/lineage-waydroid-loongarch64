@@ -1,0 +1,27 @@
+From 3621f47cbf97ea66c07929b2cfef2add6cd6c299 Mon Sep 17 00:00:00 2001
+From: noctis <970308389@qq.com>
+Date: Sat, 1 Aug 2026 23:19:17 +0800
+Subject: [PATCH] tremolo: use C implementation on LoongArch64
+
+Change-Id: If632c68209bbd7e1ba7f80502e98a38a616f3b34
+---
+ Android.bp | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/Android.bp b/Android.bp
+index 5b3be8f..5c5099b 100644
+--- a/Android.bp
++++ b/Android.bp
+@@ -69,6 +69,9 @@ cc_library {
+         x86_64: {
+             cflags: ["-DONLY_C"],
+         },
++        loongarch64: {
++            cflags: ["-DONLY_C"],
++        },
+         riscv64: {
+             cflags: ["-DONLY_C"],
+         },
+-- 
+2.43.0
+

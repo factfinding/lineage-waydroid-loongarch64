@@ -1,0 +1,50 @@
+From fef937908689c61fc2a0ee1f8842904e47e9be11 Mon Sep 17 00:00:00 2001
+From: noctis <970308389@qq.com>
+Date: Sat, 1 Aug 2026 23:19:17 +0800
+Subject: [PATCH] libvpx: add LoongArch64 generic configuration
+
+Change-Id: Iec55021531ee4904f3936a84b5208ed71a4f73d0
+---
+ Android.bp | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
+
+diff --git a/Android.bp b/Android.bp
+index 66b29bdcd..8e4a95550 100644
+--- a/Android.bp
++++ b/Android.bp
+@@ -1489,6 +1489,10 @@ cc_defaults {
+             local_include_dirs: ["config/arm64"],
+         },
+ 
++        loongarch64: {
++            local_include_dirs: ["config/generic"],
++        },
++
+         riscv64: {
+             local_include_dirs: ["config/generic"],
+         },
+@@ -1745,6 +1749,10 @@ cc_library {
+             ],
+         },
+ 
++        loongarch64: {
++            srcs: libvpx_generic_c_srcs,
++        },
++
+         riscv64: {
+             srcs: libvpx_generic_c_srcs,
+         },
+@@ -1823,6 +1831,10 @@ cc_library_headers {
+             export_include_dirs: ["config/arm64"],
+         },
+ 
++        loongarch64: {
++            export_include_dirs: ["config/generic"],
++        },
++
+         riscv64: {
+             export_include_dirs: ["config/generic"],
+         },
+-- 
+2.43.0
+

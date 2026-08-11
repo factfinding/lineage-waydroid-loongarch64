@@ -1,0 +1,40 @@
+From 23c937094f39ad5336d5e48976f322820ca9b0ee Mon Sep 17 00:00:00 2001
+From: noctis <970308389@qq.com>
+Date: Sun, 19 Jul 2026 11:01:23 +0800
+Subject: [PATCH] libyuv: build LoongArch LSX sources
+
+Change-Id: Ibe1cbbf195a1ad98efdce7b44a1943140c74dda6
+---
+ Android.bp | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/Android.bp b/Android.bp
+index bfa20806..1f4b6b9c 100644
+--- a/Android.bp
++++ b/Android.bp
+@@ -41,12 +41,14 @@ cc_defaults {
+         "source/rotate_argb.cc",
+         "source/rotate_common.cc",
+         "source/rotate_gcc.cc",
++        "source/rotate_lsx.cc",
+         "source/rotate_msa.cc",
+         "source/rotate_neon.cc",
+         "source/rotate_neon64.cc",
+         "source/row_any.cc",
+         "source/row_common.cc",
+         "source/row_gcc.cc",
++        "source/row_lsx.cc",
+         "source/row_msa.cc",
+         "source/row_neon.cc",
+         "source/row_neon64.cc",
+@@ -56,6 +58,7 @@ cc_defaults {
+         "source/scale_argb.cc",
+         "source/scale_common.cc",
+         "source/scale_gcc.cc",
++        "source/scale_lsx.cc",
+         "source/scale_msa.cc",
+         "source/scale_neon.cc",
+         "source/scale_neon64.cc",
+-- 
+2.43.0
+
