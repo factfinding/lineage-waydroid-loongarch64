@@ -1,0 +1,179 @@
+From 95dc5ec6ca34e6f48bcbe06c82f241fc635c247c Mon Sep 17 00:00:00 2001
+From: noctis <970308389@qq.com>
+Date: Sun, 19 Jul 2026 13:17:19 +0800
+Subject: [PATCH 2/9] llvm_android: add LoongArch64 Android runtime configs
+
+Change-Id: I1db4e580481ec56142f92da413b0bbdfc1c531fb
+---
+ src/llvm_android/builders.py | 24 ++++++++++++++++--------
+ src/llvm_android/configs.py  | 21 +++++++++++++++++++--
+ src/llvm_android/hosts.py    |  4 +++-
+ src/llvm_android/paths.py    |  3 +++
+ 4 files changed, 41 insertions(+), 11 deletions(-)
+
+diff --git a/src/llvm_android/builders.py b/src/llvm_android/builders.py
+index 7a09cfb..693f2f8 100644
+--- a/src/llvm_android/builders.py
++++ b/src/llvm_android/builders.py
+@@ -912,6 +912,7 @@ class LldbServerBuilder(base_builders.LLVMRuntimeBuilder):
+             hosts.Arch.I386: 'X86',
+             hosts.Arch.X86_64: 'X86',
+             hosts.Arch.RISCV64: 'RISCV',
++            hosts.Arch.LOONGARCH64: 'LoongArch',
+         }[self._config.target_arch]
+ 
+     @property
+@@ -976,6 +977,7 @@ class DeviceSysrootsBuilder(base_builders.Builder):
+     def _build_config(self) -> None:
+         config: configs.AndroidConfig = cast(configs.AndroidConfig, self._config)
+         arch = config.target_arch
++        sysroot_without_stl = arch == hosts.Arch.LOONGARCH64
+         sysroot = config.sysroot
+         if sysroot.exists():
+             shutil.rmtree(sysroot)
+@@ -983,14 +985,18 @@ class DeviceSysrootsBuilder(base_builders.Builder):
+ 
+         # Copy the NDK prebuilt's sysroot, but for the platform variant, omit
+         # the STL and android_support headers and libraries.
+-        src_sysroot = paths.NDK_BASE / 'toolchains' / 'llvm' / 'prebuilt' / 'linux-x86_64' / 'sysroot'
++        if arch == hosts.Arch.LOONGARCH64:
++            src_sysroot = paths.LOONGARCH64_ANDROID_SYSROOT
++        else:
++            src_sysroot = paths.NDK_BASE / 'toolchains' / 'llvm' / 'prebuilt' / 'linux-x86_64' / 'sysroot'
+ 
+         # Copy over usr/include.
+         shutil.copytree(src_sysroot / 'usr' / 'include',
+                         sysroot / 'usr' / 'include', symlinks=True)
+ 
+-        # Remove the STL headers.
+-        shutil.rmtree(sysroot / 'usr' / 'include' / 'c++')
++        if not sysroot_without_stl:
++            # Remove the STL headers.
++            shutil.rmtree(sysroot / 'usr' / 'include' / 'c++')
+ 
+         # Copy over usr/lib/$TRIPLE.
+         src_lib = src_sysroot / 'usr' / 'lib' / config.ndk_sysroot_triple
+@@ -1000,17 +1006,19 @@ class DeviceSysrootsBuilder(base_builders.Builder):
+         # Remove the NDK's libcompiler_rt-extras.  Also remove the NDK libc++,
+         # except for the riscv64 sysroot which doesn't have these files.
+         (dest_lib / 'libcompiler_rt-extras.a').unlink()
+-        (dest_lib / 'libc++abi.a').unlink()
+-        (dest_lib / 'libc++_static.a').unlink()
+-        (dest_lib / 'libc++_shared.so').unlink()
++        if not sysroot_without_stl:
++            (dest_lib / 'libc++abi.a').unlink()
++            (dest_lib / 'libc++_static.a').unlink()
++            (dest_lib / 'libc++_shared.so').unlink()
+         # Each per-API-level directory has libc++.so and libc++.a.
+         for subdir in dest_lib.iterdir():
+             if subdir.is_symlink() or not subdir.is_dir():
+                 continue
+             if not re.match(r'\d+$', subdir.name):
+                 continue
+-            (subdir / 'libc++.a').unlink()
+-            (subdir / 'libc++.so').unlink()
++            if not sysroot_without_stl:
++                (subdir / 'libc++.a').unlink()
++                (subdir / 'libc++.so').unlink()
+         # Verify that there aren't any extra copies somewhere else in the
+         # directory hierarchy.
+         verify_gone = [
+diff --git a/src/llvm_android/configs.py b/src/llvm_android/configs.py
+index bc6cae9..a951af5 100644
+--- a/src/llvm_android/configs.py
++++ b/src/llvm_android/configs.py
+@@ -592,6 +592,7 @@ class AndroidConfig(_BaseConfig):
+             hosts.Arch.AARCH64: 'arm64',
+             hosts.Arch.I386: 'x86',
+             hosts.Arch.RISCV64: 'riscv64',
++            hosts.Arch.LOONGARCH64: 'loongarch64',
+             hosts.Arch.X86_64: 'x86_64',
+         }[self.target_arch]
+ 
+@@ -618,8 +619,9 @@ class AndroidConfig(_BaseConfig):
+         ldflags.append('-pie')
+         if self.static:
+             ldflags.append('-static')
+-        if (self.target_arch == hosts.Arch.X86_64 or
+-                self.target_arch == hosts.Arch.AARCH64):
++        if self.target_arch in (hosts.Arch.X86_64,
++                                hosts.Arch.AARCH64,
++                                hosts.Arch.LOONGARCH64):
+             ldflags.append('-Wl,-z,max-page-size=16384')
+         return ldflags
+ 
+@@ -639,6 +641,8 @@ class AndroidConfig(_BaseConfig):
+     def api_level(self) -> int:
+         if self.override_api_level:
+             return self.override_api_level
++        if self.target_arch == hosts.Arch.LOONGARCH64:
++            return 10000
+         if self.target_arch == hosts.Arch.RISCV64:
+             return 35
+         if self.static or self.platform:
+@@ -686,6 +690,18 @@ class AndroidRiscv64Config(AndroidConfig):
+     target_arch: hosts.Arch = hosts.Arch.RISCV64
+ 
+ 
++class AndroidLoongArch64Config(AndroidConfig):
++    """Configs for Android LoongArch64 targets."""
++    target_arch: hosts.Arch = hosts.Arch.LOONGARCH64
++    _toolchain_path: Optional[Path] = None
++
++    @property
++    def cflags(self) -> List[str]:
++        cflags = super().cflags
++        cflags.append(f'-isystem {self.sysroot}/usr/include/{self.ndk_sysroot_triple}')
++        return cflags
++
++
+ class AndroidX64Config(AndroidConfig):
+     """Configs for android x86_64 targets."""
+     target_arch: hosts.Arch = hosts.Arch.X86_64
+@@ -731,6 +747,7 @@ def android_configs(platform: bool=True,
+         AndroidI386Config(),
+         AndroidX64Config(),
+         AndroidRiscv64Config(),
++        AndroidLoongArch64Config(),
+     ]
+     for config in configs:
+         config.static = static
+diff --git a/src/llvm_android/hosts.py b/src/llvm_android/hosts.py
+index 13fb1a9..60c75ab 100644
+--- a/src/llvm_android/hosts.py
++++ b/src/llvm_android/hosts.py
+@@ -78,6 +78,7 @@ class Arch(enum.Enum):
+     I386 = 'i386'
+     X86_64 = 'x86_64'
+     RISCV64 = 'riscv64'
++    LOONGARCH64 = 'loongarch64'
+ 
+     @property
+     def llvm_arch(self) -> str:
+@@ -87,7 +88,8 @@ class Arch(enum.Enum):
+             Arch.AARCH64: 'aarch64',
+             Arch.I386: 'i686',
+             Arch.X86_64: 'x86_64',
+-            Arch.RISCV64: 'riscv64'
++            Arch.RISCV64: 'riscv64',
++            Arch.LOONGARCH64: 'loongarch64'
+         }[self]
+ 
+ 
+diff --git a/src/llvm_android/paths.py b/src/llvm_android/paths.py
+index b419ac6..d57872b 100644
+--- a/src/llvm_android/paths.py
++++ b/src/llvm_android/paths.py
+@@ -66,6 +66,9 @@ ZSTD_SRC_DIR: Path = EXTERNAL_DIR / 'zstd'
+ 
+ NDK_BASE: Path = TOOLCHAIN_DIR / 'prebuilts' / 'ndk' / 'releases' / constants.NDK_VERSION
+ 
++LOONGARCH64_ANDROID_SYSROOT: Path = (
++    OUT_DIR / 'loongarch64-android-sysroot-source')
++
+ GCC_ROOT: Path = PREBUILTS_DIR / 'gcc' / hosts.build_host().os_tag
+ GO_ROOT: Path = PREBUILTS_DIR / 'go' / hosts.build_host().os_tag
+ MINGW_ROOT: Path = PREBUILTS_DIR / 'gcc' / 'linux-x86' / 'host' / 'x86_64-w64-mingw32-4.8' / 'x86_64-w64-mingw32'
+-- 
+2.43.0
+

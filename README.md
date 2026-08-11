@@ -15,6 +15,7 @@ The current system boots to `sys.boot_completed=1` on an AOSC OS LoongArch64 hos
 - AOSP projects without an exact GitHub mirror use author-preserving patch series under `patches/`.
 - Chromium WebView source is published at [`factfinding/chromium`](https://github.com/factfinding/chromium), branch `loongarch64/webview-151.0.7922.71`.
 - Large Clang, Rust, VNDK and WebView build artifacts are intentionally not stored in Git history.
+- LLVM 21 and Rust 1.88 source changes and recorded build inputs are documented under [`toolchains/`](toolchains/README.md).
 - `projects.tsv` records the source path, publication mode, source location and exact development commit.
 
 The source stack is:

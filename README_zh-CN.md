@@ -15,6 +15,7 @@
 - 没有准确 GitHub 镜像的 AOSP 项目，以保留作者信息的补丁序列放在 `patches/`。
 - Chromium WebView 源码发布在 [`factfinding/chromium`](https://github.com/factfinding/chromium) 的 `loongarch64/webview-151.0.7922.71` 分支。
 - Clang、Rust、VNDK 和 WebView 等大型构建产物不进入普通 Git 历史。
+- LLVM 21 与 Rust 1.88 的源码修改和已有构建输入记录在 [`toolchains/`](toolchains/README.md)。
 - `projects.tsv` 记录每个项目的源码路径、发布方式、来源和当前精确提交。
 
 源码关系如下：

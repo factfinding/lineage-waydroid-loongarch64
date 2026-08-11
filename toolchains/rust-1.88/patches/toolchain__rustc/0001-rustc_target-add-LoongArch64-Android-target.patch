@@ -1,0 +1,61 @@
+From 2a00fc1d5906eec619aea0fc8fc0686a06d56ab0 Mon Sep 17 00:00:00 2001
+From: noctis <970308389@qq.com>
+Date: Mon, 3 Aug 2026 13:13:25 +0800
+Subject: [PATCH 1/2] rustc_target: add LoongArch64 Android target
+
+Change-Id: I1e973d5ccbe07fd11d36712d68211929a44ff67b
+---
+ compiler/rustc_target/src/spec/mod.rs         |  1 +
+ .../spec/targets/loongarch64_linux_android.rs | 28 +++++++++++++++++++
+ 2 files changed, 29 insertions(+)
+ create mode 100644 compiler/rustc_target/src/spec/targets/loongarch64_linux_android.rs
+
+diff --git a/compiler/rustc_target/src/spec/mod.rs b/compiler/rustc_target/src/spec/mod.rs
+index 303be54a6d..50d612ad79 100644
+--- a/compiler/rustc_target/src/spec/mod.rs
++++ b/compiler/rustc_target/src/spec/mod.rs
+@@ -1804,6 +1804,7 @@ supported_targets! {
+     ("thumbv7neon-linux-androideabi", thumbv7neon_linux_androideabi),
+     ("aarch64-linux-android", aarch64_linux_android),
+     ("riscv64-linux-android", riscv64_linux_android),
++    ("loongarch64-linux-android", loongarch64_linux_android),
+ 
+     ("aarch64-unknown-freebsd", aarch64_unknown_freebsd),
+     ("armv6-unknown-freebsd", armv6_unknown_freebsd),
+diff --git a/compiler/rustc_target/src/spec/targets/loongarch64_linux_android.rs b/compiler/rustc_target/src/spec/targets/loongarch64_linux_android.rs
+new file mode 100644
+index 0000000000..dfe0b989b8
+--- /dev/null
++++ b/compiler/rustc_target/src/spec/targets/loongarch64_linux_android.rs
+@@ -0,0 +1,28 @@
++use std::borrow::Cow;
++
++use crate::spec::{CodeModel, SanitizerSet, SplitDebuginfo, Target, TargetOptions, base};
++
++pub(crate) fn target() -> Target {
++    Target {
++        llvm_target: "loongarch64-linux-android".into(),
++        metadata: crate::spec::TargetMetadata {
++            description: Some("LoongArch64 Android".into()),
++            tier: Some(3),
++            host_tools: Some(false),
++            std: Some(false),
++        },
++        pointer_width: 64,
++        data_layout: "e-m:e-p:64:64-i64:64-i128:128-n32:64-S128".into(),
++        arch: "loongarch64".into(),
++        options: TargetOptions {
++            code_model: Some(CodeModel::Medium),
++            cpu: "generic".into(),
++            features: "+f,+d".into(),
++            llvm_abiname: "lp64d".into(),
++            supported_sanitizers: SanitizerSet::ADDRESS,
++            max_atomic_width: Some(64),
++            supported_split_debuginfo: Cow::Borrowed(&[SplitDebuginfo::Off]),
++            ..base::android::opts()
++        },
++    }
++}
+-- 
+2.43.0
+

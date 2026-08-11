@@ -1,0 +1,59 @@
+From 42f9c01a7d34860ed68eee78d42a388bef1538ae Mon Sep 17 00:00:00 2001
+From: noctis <970308389@qq.com>
+Date: Mon, 3 Aug 2026 18:11:15 +0800
+Subject: [PATCH 1/2] compiler-rt: support Android LoongArch sanitizer contexts
+
+Change-Id: I1c5c136995428aced9535d058cb4de8127c7c56f
+---
+ compiler-rt/lib/sanitizer_common/sanitizer_linux.cpp | 10 ++++++++++
+ compiler-rt/lib/sanitizer_common/sanitizer_linux.h   |  2 +-
+ 2 files changed, 11 insertions(+), 1 deletion(-)
+
+diff --git a/compiler-rt/lib/sanitizer_common/sanitizer_linux.cpp b/compiler-rt/lib/sanitizer_common/sanitizer_linux.cpp
+index 7aa48d29d2d5..223f8cee93cb 100644
+--- a/compiler-rt/lib/sanitizer_common/sanitizer_linux.cpp
++++ b/compiler-rt/lib/sanitizer_common/sanitizer_linux.cpp
+@@ -2061,7 +2061,11 @@ SignalContext::WriteFlag SignalContext::GetWriteFlag() const {
+   // Address error was due to memory store
+ #      define SC_ADDRERR_WR (1 << 31)
+ #    endif
++#    if SANITIZER_ANDROID
++  u32 flags = ucontext->uc_mcontext.sc_flags;
++#    else
+   u32 flags = ucontext->uc_mcontext.__flags;
++#    endif
+   if (flags & SC_ADDRERR_RD)
+     return SignalContext::Read;
+   if (flags & SC_ADDRERR_WR)
+@@ -2705,9 +2709,15 @@ static void GetPcSpBp(void *context, uptr *pc, uptr *sp, uptr *bp) {
+   *sp = ucontext->uc_mcontext.r29;
+ #  elif defined(__loongarch__)
+   ucontext_t *ucontext = (ucontext_t *)context;
++#    if SANITIZER_ANDROID
++  *pc = ucontext->uc_mcontext.sc_pc;
++  *bp = ucontext->uc_mcontext.sc_regs[22];
++  *sp = ucontext->uc_mcontext.sc_regs[3];
++#    else
+   *pc = ucontext->uc_mcontext.__pc;
+   *bp = ucontext->uc_mcontext.__gregs[22];
+   *sp = ucontext->uc_mcontext.__gregs[3];
++#    endif
+ #  else
+ #    error "Unsupported arch"
+ #  endif
+diff --git a/compiler-rt/lib/sanitizer_common/sanitizer_linux.h b/compiler-rt/lib/sanitizer_common/sanitizer_linux.h
+index 8b7874bb5a34..b945ef4141b6 100644
+--- a/compiler-rt/lib/sanitizer_common/sanitizer_linux.h
++++ b/compiler-rt/lib/sanitizer_common/sanitizer_linux.h
+@@ -165,7 +165,7 @@ inline void ReleaseMemoryPagesToOSAndZeroFill(uptr beg, uptr end) {
+               : "=r"(__v));              \
+           __v;                           \
+         })
+-#    elif defined(__riscv)
++#    elif defined(__riscv) || defined(__loongarch__)
+ #      define __get_tls()                   \
+         ({                                  \
+           void **__v;                       \
+-- 
+2.43.0
+

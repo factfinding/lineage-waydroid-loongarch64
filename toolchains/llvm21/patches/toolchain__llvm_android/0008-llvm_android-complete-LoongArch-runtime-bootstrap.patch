@@ -1,0 +1,77 @@
+From e92036270019aed884565fe57567bc59066fe76a Mon Sep 17 00:00:00 2001
+From: noctis <970308389@qq.com>
+Date: Mon, 3 Aug 2026 14:35:57 +0800
+Subject: [PATCH 8/9] llvm_android: complete LoongArch runtime bootstrap
+
+Include executable and shared-library CRT objects plus the LoongArch floating-point environment ABI in the generated Android sysroot. Apply LLVM_ANDROID_ARCHES to the hard-coded builtins and unwinder configurations so a LoongArch-only runtime build does not fall through to unrelated targets.
+
+Change-Id: I0c8760130396e25edc910f9dec4ed7e0e4c24b55
+---
+ scripts/prepare_loongarch64_libcxx_sysroot.sh | 15 +++++++++------
+ src/llvm_android/builders.py                  | 10 ++++++++++
+ 2 files changed, 19 insertions(+), 6 deletions(-)
+
+diff --git a/scripts/prepare_loongarch64_libcxx_sysroot.sh b/scripts/prepare_loongarch64_libcxx_sysroot.sh
+index f5f17ec..8bf577e 100755
+--- a/scripts/prepare_loongarch64_libcxx_sysroot.sh
++++ b/scripts/prepare_loongarch64_libcxx_sysroot.sh
+@@ -28,6 +28,10 @@ sed -i '/#elif defined(__riscv)/i\
+ // No other libcs have any loongarch64-specific structs.\
+ ' "${dest}/usr/include/sys/user.h"
+ install -m 0644 "${aosp}/bionic/libc/include/sys/ucontext.h" "${dest}/usr/include/sys/ucontext.h"
++install -m 0644 "${aosp}/bionic/libc/include/fenv.h" "${dest}/usr/include/fenv.h"
++install -m 0644 \
++    "${aosp}/bionic/libc/include/bits/fenv_loongarch64.h" \
++    "${dest}/usr/include/bits/fenv_loongarch64.h"
+ 
+ mkdir -p "${dest}/usr/include/${triple}/asm"
+ rsync -a --delete \
+@@ -41,12 +45,11 @@ for library in libc/libc libm/libm libdl/libdl; do
+         "${aosp}/out/soong/.intermediates/bionic/${module}/${name}/android_loongarch64_shared_current/${name}.so" \
+         "${api_libdir}/${name}.so"
+ done
+-install -m 0644 \
+-    "${aosp}/out/soong/.intermediates/bionic/libc/crtbegin_so/android_loongarch64/crtbegin_so.o" \
+-    "${api_libdir}/crtbegin_so.o"
+-install -m 0644 \
+-    "${aosp}/out/soong/.intermediates/bionic/libc/crtend_so/android_loongarch64/crtend_so.o" \
+-    "${api_libdir}/crtend_so.o"
++for crt in crtbegin_dynamic crtbegin_so crtend_android crtend_so; do
++    install -m 0644 \
++        "${aosp}/out/soong/.intermediates/bionic/libc/${crt}/android_loongarch64/${crt}.o" \
++        "${api_libdir}/${crt}.o"
++done
+ 
+ # DeviceSysrootsBuilder removes this archive before configuring libc++.
+ install -m 0644 \
+diff --git a/src/llvm_android/builders.py b/src/llvm_android/builders.py
+index 386c832..e78760b 100644
+--- a/src/llvm_android/builders.py
++++ b/src/llvm_android/builders.py
+@@ -332,6 +332,11 @@ class BuiltinsBuilder(base_builders.LLVMRuntimeBuilder):
+         result.append(configs.LinuxMuslConfig(hosts.Arch.AARCH64))
+         result.append(configs.LinuxMuslConfig(hosts.Arch.ARM))
+         result.append(configs.LinuxMuslConfig(hosts.Arch.X86_64))
++        if requested_arches := os.environ.get('LLVM_ANDROID_ARCHES'):
++            requested = set(requested_arches.split(','))
++            result = [config for config in result
++                      if config.target_os.is_android and
++                      config.target_arch.value in requested]
+         return result
+ 
+     @property
+@@ -605,6 +610,11 @@ class LibUnwindBuilder(base_builders.LLVMRuntimeBuilder):
+ 
+         result.append(riscv64)
+ 
++        if requested_arches := os.environ.get('LLVM_ANDROID_ARCHES'):
++            requested = set(requested_arches.split(','))
++            result = [config for config in result
++                      if config.target_arch.value in requested]
++
+         return result
+ 
+     @property
+-- 
+2.43.0
+

@@ -1,0 +1,84 @@
+From 7c0216c64c4501702b29ba15a641b82301537d26 Mon Sep 17 00:00:00 2001
+From: noctis <970308389@qq.com>
+Date: Sun, 19 Jul 2026 13:25:45 +0800
+Subject: [PATCH 4/9] llvm_android: add LoongArch64 libc++ sysroot helper
+
+Generate a version-matched Android sysroot from the RISC-V template, overlay the LoongArch kernel and ucontext ABI headers, and install the Bionic libraries and compiler-rt builtins needed to bootstrap device libc++.
+
+Change-Id: I6d592a24b2ef57d83dcc8ce6d27858e63b5f5404
+---
+ scripts/prepare_loongarch64_libcxx_sysroot.sh | 62 +++++++++++++++++++
+ 1 file changed, 62 insertions(+)
+ create mode 100755 scripts/prepare_loongarch64_libcxx_sysroot.sh
+
+diff --git a/scripts/prepare_loongarch64_libcxx_sysroot.sh b/scripts/prepare_loongarch64_libcxx_sysroot.sh
+new file mode 100755
+index 0000000..4c02260
+--- /dev/null
++++ b/scripts/prepare_loongarch64_libcxx_sysroot.sh
+@@ -0,0 +1,62 @@
++#!/bin/bash
++
++set -euo pipefail
++
++llvm_android="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
++toolchain="$(cd "${llvm_android}/../.." && pwd)"
++workspace="$(cd "${toolchain}/.." && pwd)"
++aosp="${workspace}/aosp"
++template="${toolchain}/toolchain/prebuilts/sysroot/platform/riscv64-linux-android"
++dest="${toolchain}/out/loongarch64-android-sysroot-source"
++triple="loongarch64-linux-android"
++libdir="${dest}/usr/lib/${triple}"
++api_libdir="${libdir}/10000"
++
++test -d "${template}/usr/include"
++test -f "${aosp}/out/soong/.intermediates/bionic/libc/libc/android_loongarch64_shared/libc.so"
++
++mkdir -p "${dest}/usr/include" "${api_libdir}"
++rsync -a --delete \
++    --exclude='riscv64-linux-android/' \
++    "${template}/usr/include/" "${dest}/usr/include/"
++
++sed -i '/#elif defined(__riscv)/i\
++#elif defined(__loongarch__)\
++\
++// This space deliberately left blank for now.\
++// No other libcs have any loongarch64-specific structs.\
++' "${dest}/usr/include/sys/user.h"
++install -m 0644 "${aosp}/bionic/libc/include/sys/ucontext.h" "${dest}/usr/include/sys/ucontext.h"
++
++mkdir -p "${dest}/usr/include/${triple}/asm"
++rsync -a --delete \
++    "${aosp}/bionic/libc/kernel/uapi/asm-loongarch/asm/" \
++    "${dest}/usr/include/${triple}/asm/"
++
++for library in libc/libc libm/libm libdl/libdl; do
++    module="${library%/*}"
++    name="${library#*/}"
++    install -m 0644 \
++        "${aosp}/out/soong/.intermediates/bionic/${module}/${name}/android_loongarch64_shared/${name}.so" \
++        "${api_libdir}/${name}.so"
++done
++install -m 0644 \
++    "${aosp}/out/soong/.intermediates/bionic/libc/crtbegin_so/android_loongarch64/crtbegin_so.o" \
++    "${api_libdir}/crtbegin_so.o"
++install -m 0644 \
++    "${aosp}/out/soong/.intermediates/bionic/libc/crtend_so/android_loongarch64/crtend_so.o" \
++    "${api_libdir}/crtend_so.o"
++
++# DeviceSysrootsBuilder removes this archive before configuring libc++.
++install -m 0644 \
++    "${template}/usr/lib/riscv64-linux-android/libcompiler_rt-extras.a" \
++    "${libdir}/libcompiler_rt-extras.a"
++
++# Clang looks for compiler-rt using its canonical target-triple directory.
++resource_dir="${toolchain}/out/stage2-install/lib/clang/20/lib/loongarch64-unknown-linux-android10000"
++mkdir -p "${resource_dir}"
++install -m 0644 \
++    "${aosp}/prebuilts/clang/host/linux-x86/clang-r547379/lib/clang/20/lib/linux/libclang_rt.builtins-loongarch64-android.a" \
++    "${resource_dir}/libclang_rt.builtins.a"
++
++echo "Prepared LoongArch64 Android libc++ sysroot at ${dest}"
+-- 
+2.43.0
+

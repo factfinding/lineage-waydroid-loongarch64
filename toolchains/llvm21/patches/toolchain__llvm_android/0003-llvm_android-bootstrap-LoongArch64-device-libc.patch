@@ -1,0 +1,89 @@
+From 50de42c80c56faa199ebeb1c2abd6b09d64cd33f Mon Sep 17 00:00:00 2001
+From: noctis <970308389@qq.com>
+Date: Sun, 19 Jul 2026 13:24:49 +0800
+Subject: [PATCH 3/9] llvm_android: bootstrap LoongArch64 device libc++
+
+Allow runtime builds to select a single Android architecture, expose the temporary LoongArch sysroot libraries where Clang can find them, and configure libc++ to use compiler-rt without executable try-links.\n\nThis produces the platform libc++, libc++abi, and demangler archives against Bionic.
+
+Change-Id: I827d1196f3283f381039ac5bb09163ce5c5e8eaa
+---
+ src/llvm_android/builders.py | 18 +++++++++++++++++-
+ src/llvm_android/configs.py  |  5 +++++
+ 2 files changed, 22 insertions(+), 1 deletion(-)
+
+diff --git a/src/llvm_android/builders.py b/src/llvm_android/builders.py
+index 693f2f8..386c832 100644
+--- a/src/llvm_android/builders.py
++++ b/src/llvm_android/builders.py
+@@ -1003,6 +1003,14 @@ class DeviceSysrootsBuilder(base_builders.Builder):
+         dest_lib = sysroot / 'usr' / 'lib' / config.ndk_sysroot_triple
+         shutil.copytree(src_lib, dest_lib, symlinks=True)
+ 
++        # Clang's Android driver does not yet add the LoongArch64 triple/API
++        # directory to its default search path. Expose the platform stubs and
++        # CRT objects at usr/lib until that driver support lands upstream.
++        if arch == hosts.Arch.LOONGARCH64:
++            api_lib = dest_lib / str(config.api_level)
++            for library in api_lib.iterdir():
++                (sysroot / 'usr' / 'lib' / library.name).symlink_to(library)
++
+         # Remove the NDK's libcompiler_rt-extras.  Also remove the NDK libc++,
+         # except for the riscv64 sysroot which doesn't have these files.
+         (dest_lib / 'libcompiler_rt-extras.a').unlink()
+@@ -1062,7 +1070,7 @@ class DeviceLibcxxBuilder(base_builders.LLVMRuntimeBuilder):
+         _hwasan_config(platform=True, noexcept=False),
+         _hwasan_config(platform=True, noexcept=True),
+         _hwasan_config(platform=False, noexcept=False),
+-    ]
++    ] if not os.environ.get('LLVM_ANDROID_ARCHES') else []
+ 
+     @property
+     def _is_hwasan(self) -> bool:
+@@ -1153,6 +1161,10 @@ class DeviceLibcxxBuilder(base_builders.LLVMRuntimeBuilder):
+         defines['CMAKE_CXX_COMPILER_TARGET'] = self._config.llvm_triple
+         defines['CMAKE_SYSROOT'] = self._config.sysroot
+ 
++        if self._config.target_arch is hosts.Arch.LOONGARCH64:
++            defines['LIBCXX_USE_COMPILER_RT'] = 'ON'
++            defines['LIBCXXABI_USE_COMPILER_RT'] = 'ON'
++
+         defines['LIBCXXABI_ENABLE_SHARED'] = 'OFF'
+         defines['LIBCXXABI_USE_LLVM_UNWINDER'] = 'OFF'
+         if self._config.platform:
+@@ -1191,6 +1203,10 @@ class DeviceLibcxxBuilder(base_builders.LLVMRuntimeBuilder):
+         # LLVM_FORCE_SMALLFILE_FOR_ANDROID and _FILE_OFFSET_BITS. Maybe it
+         # should use a different name for the API level macro in CMake?
+         defines['ANDROID_NATIVE_API_LEVEL'] = str(self._config.api_level)
++        if self._config.target_arch is hosts.Arch.LOONGARCH64:
++            # Avoid an executable try-link: the bootstrap sysroot intentionally
++            # contains only the shared-library CRT objects needed by libc++.
++            defines['CMAKE_TRY_COMPILE_TARGET_TYPE'] = 'STATIC_LIBRARY'
+ 
+         # Testing on-device
+         TEST_PARAMS = f"executor={paths.LLVM_PATH}/libcxx/utils/adb_run.py;target_triple={self._config.base_llvm_triple}33"
+diff --git a/src/llvm_android/configs.py b/src/llvm_android/configs.py
+index a951af5..306833a 100644
+--- a/src/llvm_android/configs.py
++++ b/src/llvm_android/configs.py
+@@ -19,6 +19,7 @@ from pathlib import Path
+ from typing import Dict, List, Optional
+ import functools
+ import json
++import os
+ 
+ from llvm_android import (hosts, paths, toolchains, win_sdk)
+ 
+@@ -749,6 +750,10 @@ def android_configs(platform: bool=True,
+         AndroidRiscv64Config(),
+         AndroidLoongArch64Config(),
+     ]
++    requested_arches = os.environ.get('LLVM_ANDROID_ARCHES')
++    if requested_arches:
++        requested = set(requested_arches.split(','))
++        configs = [config for config in configs if config.target_arch.value in requested]
+     for config in configs:
+         config.static = static
+         config.platform = platform
+-- 
+2.43.0
+

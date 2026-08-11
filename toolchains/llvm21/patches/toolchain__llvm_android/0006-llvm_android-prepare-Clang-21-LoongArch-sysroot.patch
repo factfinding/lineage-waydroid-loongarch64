@@ -1,0 +1,46 @@
+From f5efaf4b1a56a5da9ff9e53830f14841fc75a1c1 Mon Sep 17 00:00:00 2001
+From: noctis <970308389@qq.com>
+Date: Mon, 3 Aug 2026 11:48:04 +0800
+Subject: [PATCH 6/9] llvm_android: prepare Clang 21 LoongArch sysroot
+
+Change-Id: I9e8344a2b02e2d15b32a450c249e1c595a2bf699
+---
+ scripts/prepare_loongarch64_libcxx_sysroot.sh | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
+
+diff --git a/scripts/prepare_loongarch64_libcxx_sysroot.sh b/scripts/prepare_loongarch64_libcxx_sysroot.sh
+index 4c02260..11de78f 100755
+--- a/scripts/prepare_loongarch64_libcxx_sysroot.sh
++++ b/scripts/prepare_loongarch64_libcxx_sysroot.sh
+@@ -5,12 +5,13 @@ set -euo pipefail
+ llvm_android="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+ toolchain="$(cd "${llvm_android}/../.." && pwd)"
+ workspace="$(cd "${toolchain}/.." && pwd)"
+-aosp="${workspace}/aosp"
++aosp="${AOSP_ROOT:-${workspace}/lineage-waydroid-23.2}"
+ template="${toolchain}/toolchain/prebuilts/sysroot/platform/riscv64-linux-android"
+ dest="${toolchain}/out/loongarch64-android-sysroot-source"
+ triple="loongarch64-linux-android"
+ libdir="${dest}/usr/lib/${triple}"
+ api_libdir="${libdir}/10000"
++bootstrap_builtins="${LOONGARCH64_BOOTSTRAP_BUILTINS:-${workspace}/aosp/prebuilts/clang/host/linux-x86/clang-r547379/lib/clang/20/lib/linux/libclang_rt.builtins-loongarch64-android.a}"
+ 
+ test -d "${template}/usr/include"
+ test -f "${aosp}/out/soong/.intermediates/bionic/libc/libc/android_loongarch64_shared/libc.so"
+@@ -53,10 +54,11 @@ install -m 0644 \
+     "${libdir}/libcompiler_rt-extras.a"
+ 
+ # Clang looks for compiler-rt using its canonical target-triple directory.
+-resource_dir="${toolchain}/out/stage2-install/lib/clang/20/lib/loongarch64-unknown-linux-android10000"
++clang="${toolchain}/out/stage2-install/bin/clang"
++resource_dir="$("${clang}" -print-resource-dir)/lib/loongarch64-unknown-linux-android10000"
+ mkdir -p "${resource_dir}"
+ install -m 0644 \
+-    "${aosp}/prebuilts/clang/host/linux-x86/clang-r547379/lib/clang/20/lib/linux/libclang_rt.builtins-loongarch64-android.a" \
++    "${bootstrap_builtins}" \
+     "${resource_dir}/libclang_rt.builtins.a"
+ 
+ echo "Prepared LoongArch64 Android libc++ sysroot at ${dest}"
+-- 
+2.43.0
+

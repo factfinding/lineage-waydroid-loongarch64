@@ -1,0 +1,26 @@
+From 4304723844da8f17fdb624ce6595b5b9d788fde6 Mon Sep 17 00:00:00 2001
+From: noctis <970308389@qq.com>
+Date: Mon, 3 Aug 2026 11:33:19 +0800
+Subject: [PATCH 5/9] llvm_android: cap build parallelism at eight
+
+Change-Id: Ic52d294dfed1bcb163f5b66e5d099ce8883a7681
+---
+ src/llvm_android/base_builders.py | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/llvm_android/base_builders.py b/src/llvm_android/base_builders.py
+index c8a9185..41bf684 100644
+--- a/src/llvm_android/base_builders.py
++++ b/src/llvm_android/base_builders.py
+@@ -468,7 +468,7 @@ class CMakeBuilder(Builder):
+                 add_env: additional environment variables
+         """
+         # Keep peak LLVM compiler memory below this host's 20 GiB RAM limit.
+-        ninja_cmd = [str(paths.NINJA_BIN_PATH), '-j12'] + args
++        ninja_cmd = [str(paths.NINJA_BIN_PATH), '-j8'] + args
+         if add_env:
+             ninja_env = self.env.copy()
+             ninja_env.update(add_env)
+-- 
+2.43.0
+

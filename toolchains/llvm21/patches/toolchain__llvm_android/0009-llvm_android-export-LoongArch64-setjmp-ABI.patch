@@ -1,0 +1,25 @@
+From 34aa339c07fe966c118d89fbbdca01b97d98fd9f Mon Sep 17 00:00:00 2001
+From: noctis <970308389@qq.com>
+Date: Mon, 3 Aug 2026 16:10:10 +0800
+Subject: [PATCH 9/9] llvm_android: export LoongArch64 setjmp ABI
+
+Change-Id: Idc1d54181d79de9b93d582d71a8f2ada452c85d7
+---
+ scripts/prepare_loongarch64_libcxx_sysroot.sh | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/scripts/prepare_loongarch64_libcxx_sysroot.sh b/scripts/prepare_loongarch64_libcxx_sysroot.sh
+index 8bf577e..bc16d67 100755
+--- a/scripts/prepare_loongarch64_libcxx_sysroot.sh
++++ b/scripts/prepare_loongarch64_libcxx_sysroot.sh
+@@ -28,6 +28,7 @@ sed -i '/#elif defined(__riscv)/i\
+ // No other libcs have any loongarch64-specific structs.\
+ ' "${dest}/usr/include/sys/user.h"
+ install -m 0644 "${aosp}/bionic/libc/include/sys/ucontext.h" "${dest}/usr/include/sys/ucontext.h"
++install -m 0644 "${aosp}/bionic/libc/include/setjmp.h" "${dest}/usr/include/setjmp.h"
+ install -m 0644 "${aosp}/bionic/libc/include/fenv.h" "${dest}/usr/include/fenv.h"
+ install -m 0644 \
+     "${aosp}/bionic/libc/include/bits/fenv_loongarch64.h" \
+-- 
+2.43.0
+

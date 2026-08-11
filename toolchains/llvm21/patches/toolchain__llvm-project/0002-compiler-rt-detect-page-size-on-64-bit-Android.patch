@@ -1,0 +1,42 @@
+From 2841e3fd523669ee12ded0b70fed7cdc946c3e6d Mon Sep 17 00:00:00 2001
+From: noctis <970308389@qq.com>
+Date: Tue, 4 Aug 2026 16:31:39 +0800
+Subject: [PATCH 2/2] compiler-rt: detect page size on 64-bit Android
+
+Only 32-bit Android guarantees 4 KiB pages. Query the runtime page size for all 64-bit targets so LoongArch64 ASan can align its shadow mapping on 16 KiB kernels.
+
+Change-Id: Ia054d38cd1ebdab15bf4c13c02de5ca981cc6e9d
+---
+ compiler-rt/lib/sanitizer_common/sanitizer_common.h  | 2 +-
+ compiler-rt/lib/sanitizer_common/sanitizer_linux.cpp | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/compiler-rt/lib/sanitizer_common/sanitizer_common.h b/compiler-rt/lib/sanitizer_common/sanitizer_common.h
+index d9e7ded593fe..1dde458374bf 100644
+--- a/compiler-rt/lib/sanitizer_common/sanitizer_common.h
++++ b/compiler-rt/lib/sanitizer_common/sanitizer_common.h
+@@ -60,7 +60,7 @@ inline int Verbosity() {
+   return atomic_load(&current_verbosity, memory_order_relaxed);
+ }
+ 
+-#if SANITIZER_ANDROID && !defined(__aarch64__)
++#if SANITIZER_ANDROID && SANITIZER_WORDSIZE == 32
+ // 32-bit Android only has 4k pages.
+ inline uptr GetPageSize() { return 4096; }
+ inline uptr GetPageSizeCached() { return 4096; }
+diff --git a/compiler-rt/lib/sanitizer_common/sanitizer_linux.cpp b/compiler-rt/lib/sanitizer_common/sanitizer_linux.cpp
+index 223f8cee93cb..7d60840f2c6a 100644
+--- a/compiler-rt/lib/sanitizer_common/sanitizer_linux.cpp
++++ b/compiler-rt/lib/sanitizer_common/sanitizer_linux.cpp
+@@ -1226,7 +1226,7 @@ uptr GetMaxUserVirtualAddress() {
+   return addr;
+ }
+ 
+-#  if !SANITIZER_ANDROID || defined(__aarch64__)
++#  if !SANITIZER_ANDROID || SANITIZER_WORDSIZE == 64
+ uptr GetPageSize() {
+ #    if SANITIZER_LINUX && (defined(__x86_64__) || defined(__i386__)) && \
+         defined(EXEC_PAGESIZE)
+-- 
+2.43.0
+
