@@ -8,6 +8,7 @@ The source branches and patch queues are public, but the Clang 21 and Rust 1.88 
 mkdir lineage-waydroid-23.2
 cd lineage-waydroid-23.2
 repo init -u https://github.com/LineageOS/android.git -b lineage-23.2
+cd ..
 ```
 
 Clone this repository next to, or anywhere outside, the Android source tree:
@@ -16,7 +17,7 @@ Clone this repository next to, or anywhere outside, the Android source tree:
 git clone https://github.com/factfinding/lineage-waydroid-loongarch64.git
 cd lineage-waydroid-loongarch64
 git checkout v0.2.2
-cd ..
+cd ../lineage-waydroid-23.2
 ```
 
 ## 2. Install manifests and sync
