@@ -42,13 +42,18 @@ repo sync -c -j8
 
 Projects published as GitHub forks are selected by `03-loongarch64.xml`. Supplying the release tag pins them to the matching coordinated tags. Projects for which no exact GitHub mirror exists remain on their canonical AOSP revision and receive the recorded patch queues.
 
-### Apply AOSP patch queues
+### Apply Waydroid and LoongArch64 patch queues
 
 ```bash
+../lineage-waydroid-loongarch64/scripts/apply-waydroid-patches.sh "$PWD"
 ../lineage-waydroid-loongarch64/scripts/apply-patches.sh "$PWD"
 ```
 
-The script verifies both the expected base and the resulting source tree. Patch commits preserve their original authorship.
+The first script applies Waydroid's `base-patches-36` to projects that are not
+replaced by published LoongArch64 forks. Those forks already contain the
+Waydroid changes. The second script applies the remaining LoongArch64 queues
+and verifies both the expected base and resulting source tree. Patch commits
+preserve their original authorship.
 
 ## 2. Build toolchains
 

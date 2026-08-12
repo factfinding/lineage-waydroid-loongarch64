@@ -20,6 +20,7 @@ mkdir -p "$android_root"
     repo sync -c -j8 -n --no-tags
     repo sync -c -j1 -l
 )
+"$script_dir/apply-waydroid-patches.sh" "$android_root"
 "$script_dir/apply-patches.sh" "$android_root"
 
 echo "Synchronized and patched $release_tag in $android_root"
