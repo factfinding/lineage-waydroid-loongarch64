@@ -1,61 +1,61 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <manifest>
   <remove-project name="platform/art" />
-  <project path="art" name="factfinding/android_art" remote="loongarch" revision="refs/heads/loongarch64/lineage-23.2" />
+  <project path="art" name="factfinding/android_art" remote="loongarch" clone-depth="1" revision="refs/heads/loongarch64/lineage-23.2" />
   <remove-project name="LineageOS/android_bionic" />
-  <project path="bionic" name="factfinding/android_bionic" remote="loongarch" revision="refs/heads/loongarch64/lineage-23.2" />
+  <project path="bionic" name="factfinding/android_bionic" remote="loongarch" clone-depth="1" revision="refs/heads/loongarch64/lineage-23.2" />
   <remove-project name="LineageOS/android_build" />
-  <project path="build/make" name="factfinding/android_build" remote="loongarch" revision="refs/heads/loongarch64/lineage-23.2" />
+  <project path="build/make" name="factfinding/android_build" remote="loongarch" clone-depth="1" revision="refs/heads/loongarch64/lineage-23.2" />
   <remove-project name="LineageOS/android_build_soong" />
-  <project path="build/soong" name="factfinding/android_build_soong" remote="loongarch" revision="refs/heads/loongarch64/lineage-23.2" />
+  <project path="build/soong" name="factfinding/android_build_soong" remote="loongarch" clone-depth="1" revision="refs/heads/loongarch64/lineage-23.2" />
   <remove-project name="waydroid/android_device_waydroid_waydroid" />
-  <project path="device/waydroid/waydroid" name="factfinding/android_device_waydroid_waydroid" remote="loongarch" revision="refs/heads/loongarch64/lineage-23.2" />
+  <project path="device/waydroid/waydroid" name="factfinding/android_device_waydroid_waydroid" remote="loongarch" clone-depth="1" revision="refs/heads/loongarch64/lineage-23.2" />
   <remove-project name="WayDroid-ATV/android_external_alsa-lib" />
-  <project path="external/alsa-lib" name="factfinding/android_external_alsa-lib" remote="loongarch" revision="refs/heads/loongarch64/lineage-23.2" />
+  <project path="external/alsa-lib" name="factfinding/android_external_alsa-lib" remote="loongarch" clone-depth="1" revision="refs/heads/loongarch64/lineage-23.2" />
   <remove-project name="LineageOS/android_external_chromium-webview_patches" />
-  <project path="external/chromium-webview/patches" name="factfinding/android_external_chromium-webview_patches" remote="loongarch" revision="refs/heads/loongarch64/lineage-23.2" />
+  <project path="external/chromium-webview/patches" name="factfinding/android_external_chromium-webview_patches" remote="loongarch" clone-depth="1" revision="refs/heads/loongarch64/lineage-23.2" />
   <remove-project name="platform/external/cronet" />
-  <project path="external/cronet" name="factfinding/android_external_cronet" remote="loongarch" revision="refs/heads/loongarch64/lineage-23.2" />
+  <project path="external/cronet" name="factfinding/android_external_cronet" remote="loongarch" clone-depth="1" revision="refs/heads/loongarch64/lineage-23.2" />
   <remove-project name="waydroid/android_external_ffmpeg" />
-  <project path="external/ffmpeg" name="factfinding/android_external_ffmpeg" remote="loongarch" revision="refs/heads/loongarch64/lineage-23.2" />
+  <project path="external/ffmpeg" name="factfinding/android_external_ffmpeg" remote="loongarch" clone-depth="1" revision="refs/heads/loongarch64/lineage-23.2" />
   <remove-project name="platform/external/libaom" />
-  <project path="external/libaom" name="factfinding/android_external_libaom" remote="loongarch" revision="refs/heads/loongarch64/lineage-23.2" />
+  <project path="external/libaom" name="factfinding/android_external_libaom" remote="loongarch" clone-depth="1" revision="refs/heads/loongarch64/lineage-23.2" />
   <remove-project name="LineageOS/android_external_libpng" />
-  <project path="external/libpng" name="factfinding/android_external_libpng" remote="loongarch" revision="refs/heads/loongarch64/lineage-23.2" />
+  <project path="external/libpng" name="factfinding/android_external_libpng" remote="loongarch" clone-depth="1" revision="refs/heads/loongarch64/lineage-23.2" />
   <remove-project name="android-generic/external_llvm-project" />
-  <project path="external/llvm-project" name="factfinding/external_llvm-project" remote="loongarch" revision="refs/heads/loongarch64/lineage-23.2" />
+  <project path="external/llvm-project" name="factfinding/external_llvm-project" remote="loongarch" clone-depth="1" revision="refs/heads/loongarch64/lineage-23.2" />
   <remove-project name="WayDroid-ATV/android_external_mesa3d" />
-  <project path="external/mesa3d" name="factfinding/android_external_mesa3d" remote="loongarch" revision="refs/heads/loongarch64/lineage-23.2" />
+  <project path="external/mesa3d" name="factfinding/android_external_mesa3d" remote="loongarch" clone-depth="1" revision="refs/heads/loongarch64/lineage-23.2" />
   <remove-project name="WayDroid-ATV/android_external_rust_android-crates-io" />
-  <project path="external/rust/android-crates-io" name="factfinding/android_external_rust_android-crates-io" remote="loongarch" revision="refs/heads/loongarch64/lineage-23.2" />
+  <project path="external/rust/android-crates-io" name="factfinding/android_external_rust_android-crates-io" remote="loongarch" clone-depth="1" revision="refs/heads/loongarch64/lineage-23.2" />
   <remove-project name="platform/external/skia" />
-  <project path="external/skia" name="factfinding/platform_external_skia" remote="loongarch" revision="refs/heads/loongarch64/lineage-23.2" />
+  <project path="external/skia" name="factfinding/platform_external_skia" remote="loongarch" clone-depth="1" revision="refs/heads/loongarch64/lineage-23.2" />
   <remove-project name="WayDroid-ATV/android_external_stagefright-plugins" />
-  <project path="external/stagefright-plugins" name="factfinding/android_external_stagefright-plugins" remote="loongarch" revision="refs/heads/loongarch64/lineage-23.2" />
+  <project path="external/stagefright-plugins" name="factfinding/android_external_stagefright-plugins" remote="loongarch" clone-depth="1" revision="refs/heads/loongarch64/lineage-23.2" />
   <remove-project name="platform/external/strace" />
-  <project path="external/strace" name="factfinding/platform_external_strace" remote="loongarch" revision="refs/heads/loongarch64/lineage-23.2" />
+  <project path="external/strace" name="factfinding/platform_external_strace" remote="loongarch" clone-depth="1" revision="refs/heads/loongarch64/lineage-23.2" />
   <remove-project name="platform/external/zlib" />
-  <project path="external/zlib" name="factfinding/platform_external_zlib" remote="loongarch" revision="refs/heads/loongarch64/lineage-23.2" />
+  <project path="external/zlib" name="factfinding/platform_external_zlib" remote="loongarch" clone-depth="1" revision="refs/heads/loongarch64/lineage-23.2" />
   <remove-project name="LineageOS/android_frameworks_av" />
-  <project path="frameworks/av" name="factfinding/android_frameworks_av" remote="loongarch" revision="refs/heads/loongarch64/lineage-23.2" />
+  <project path="frameworks/av" name="factfinding/android_frameworks_av" remote="loongarch" clone-depth="1" revision="refs/heads/loongarch64/lineage-23.2" />
   <remove-project name="LineageOS/android_frameworks_base" />
-  <project path="frameworks/base" name="factfinding/android_frameworks_base" remote="loongarch" revision="refs/heads/loongarch64/lineage-23.2" />
+  <project path="frameworks/base" name="factfinding/android_frameworks_base" remote="loongarch" clone-depth="1" revision="refs/heads/loongarch64/lineage-23.2" />
   <remove-project name="platform/frameworks/libs/binary_translation" />
-  <project path="frameworks/libs/binary_translation" name="factfinding/platform_frameworks_libs_binary_translation" remote="loongarch" revision="refs/heads/loongarch64/lineage-23.2" />
+  <project path="frameworks/libs/binary_translation" name="factfinding/platform_frameworks_libs_binary_translation" remote="loongarch" clone-depth="1" revision="refs/heads/loongarch64/lineage-23.2" />
   <remove-project name="LineageOS/android_frameworks_native" />
-  <project path="frameworks/native" name="factfinding/android_frameworks_native" remote="loongarch" revision="refs/heads/loongarch64/lineage-23.2" />
+  <project path="frameworks/native" name="factfinding/android_frameworks_native" remote="loongarch" clone-depth="1" revision="refs/heads/loongarch64/lineage-23.2" />
   <remove-project name="LineageOS/android_hardware_interfaces" />
-  <project path="hardware/interfaces" name="factfinding/android_hardware_interfaces" remote="loongarch" revision="refs/heads/loongarch64/lineage-23.2" />
+  <project path="hardware/interfaces" name="factfinding/android_hardware_interfaces" remote="loongarch" clone-depth="1" revision="refs/heads/loongarch64/lineage-23.2" />
   <remove-project name="LineageOS/scripts" />
-  <project path="lineage/scripts" name="factfinding/scripts" remote="loongarch" revision="refs/heads/loongarch64/lineage-23.2" />
+  <project path="lineage/scripts" name="factfinding/scripts" remote="loongarch" clone-depth="1" revision="refs/heads/loongarch64/lineage-23.2" />
   <remove-project name="LineageOS/android_packages_modules_Bluetooth" />
-  <project path="packages/modules/Bluetooth" name="factfinding/android_packages_modules_Bluetooth" remote="loongarch" revision="refs/heads/loongarch64/lineage-23.2" />
+  <project path="packages/modules/Bluetooth" name="factfinding/android_packages_modules_Bluetooth" remote="loongarch" clone-depth="1" revision="refs/heads/loongarch64/lineage-23.2" />
   <remove-project name="LineageOS/android_packages_modules_Connectivity" />
-  <project path="packages/modules/Connectivity" name="factfinding/android_packages_modules_Connectivity" remote="loongarch" revision="refs/heads/loongarch64/lineage-23.2" />
+  <project path="packages/modules/Connectivity" name="factfinding/android_packages_modules_Connectivity" remote="loongarch" clone-depth="1" revision="refs/heads/loongarch64/lineage-23.2" />
   <remove-project name="LineageOS/android_packages_modules_UprobeStats" />
-  <project path="packages/modules/UprobeStats" name="factfinding/android_packages_modules_UprobeStats" remote="loongarch" revision="refs/heads/loongarch64/lineage-23.2" />
+  <project path="packages/modules/UprobeStats" name="factfinding/android_packages_modules_UprobeStats" remote="loongarch" clone-depth="1" revision="refs/heads/loongarch64/lineage-23.2" />
   <remove-project name="LineageOS/android_system_core" />
-  <project path="system/core" name="factfinding/android_system_core" remote="loongarch" revision="refs/heads/loongarch64/lineage-23.2" />
+  <project path="system/core" name="factfinding/android_system_core" remote="loongarch" clone-depth="1" revision="refs/heads/loongarch64/lineage-23.2" />
   <remove-project name="LineageOS/android_system_extras" />
-  <project path="system/extras" name="factfinding/android_system_extras" remote="loongarch" revision="refs/heads/loongarch64/lineage-23.2" />
+  <project path="system/extras" name="factfinding/android_system_extras" remote="loongarch" clone-depth="1" revision="refs/heads/loongarch64/lineage-23.2" />
 </manifest>
