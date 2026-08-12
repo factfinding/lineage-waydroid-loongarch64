@@ -6,7 +6,7 @@
 | --- | --- | --- | --- |
 | LLVM/Clang 21 | Complete and pinned | Implemented | Pending |
 | Rust 1.88 | Complete and pinned | Implemented | Pending |
-| Chromium WebView APK | Chromium source tagged | Packaging command pending | Pending |
+| Chromium WebView APK | Chromium and depot_tools pinned | Implemented | Pending |
 | LineageOS manifest | Source forks tagged; patch trees pinned | Implemented | Pending clean sync |
 | `system.img` / `vendor.img` | Source snapshot pinned | Documented | Pending clean build |
 
