@@ -13,6 +13,9 @@ version="$(<"$source_dir/VERSION")"
 stage0_builtins="$dist_dir/libclang_rt.builtins-loongarch64-android-stage0.a"
 llvm_python="$llvm_root/prebuilts/python/linux-x86/bin/python3"
 llvm_build="$llvm_root/toolchain/llvm_android/build.py"
+host_gcc_root="$llvm_root/prebuilts/gcc/linux-x86/host/x86_64-linux-glibc2.17-4.8"
+host_gcc_lib="$host_gcc_root/lib/gcc/x86_64-linux/4.8.3"
+host_target_lib="$host_gcc_root/x86_64-linux/lib64"
 
 mkdir -p "$dist_dir"
 test "$(git -C "$llvm_root/toolchain/llvm-project" rev-parse 'HEAD^{tree}')" = \
@@ -24,16 +27,27 @@ test "$(git -C "$rust_root/toolchain/android_rust" rev-parse 'HEAD^{tree}')" = \
 test "$(git -C "$rust_root/toolchain/rustc" rev-parse 'HEAD^{tree}')" = \
     24e1ed5c8332ecdbc3aaa4a97682f86716438c5b
 
-# First build the LLVM 21 host compiler without device runtimes.
+# First build the LLVM 21 host compiler without device runtimes.  BOLT's
+# nested runtime CMake project does not inherit the GCC search paths supplied
+# by llvm_android to the parent build, so provide them through the environment.
+# They affect only this host-only bootstrap invocation.
+bootstrap_args=(--no-incremental)
+if [[ -x "$llvm_root/out/stage1-install/bin/clang" &&
+      -d "$llvm_root/out/llvm-project/llvm" ]]; then
+    bootstrap_args=(--skip-source-setup --incremental)
+fi
 (
     cd "$llvm_root"
     AOSP_ROOT="$android_root" LLVM_ANDROID_ARCHES=loongarch64 \
+    CFLAGS="-B$host_gcc_lib" \
+    CXXFLAGS="-B$host_gcc_lib" \
+    LDFLAGS="-B$host_gcc_lib -L$host_gcc_lib -L$host_target_lib" \
         "$llvm_python" "$llvm_build" \
         --build-name "loongarch64-$version" \
         --no-build=windows,lldb \
         --no-lto --no-pgo --no-bolt \
         --skip-tests --skip-package --skip-runtimes \
-        --skip-apply-patches --no-incremental
+        --skip-apply-patches "${bootstrap_args[@]}"
 )
 
 # A freestanding compiler-rt archive breaks the initial bionic/toolchain
