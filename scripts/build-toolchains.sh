@@ -16,6 +16,7 @@ llvm_build="$llvm_root/toolchain/llvm_android/build.py"
 host_gcc_root="$llvm_root/prebuilts/gcc/linux-x86/host/x86_64-linux-glibc2.17-4.8"
 host_gcc_lib="$host_gcc_root/lib/gcc/x86_64-linux/4.8.3"
 host_target_lib="$host_gcc_root/x86_64-linux/lib64"
+host_libcxx_include="$llvm_root/out/stage1-install/include/c++/v1"
 
 mkdir -p "$dist_dir"
 test "$(git -C "$llvm_root/toolchain/llvm-project" rev-parse 'HEAD^{tree}')" = \
@@ -40,7 +41,7 @@ fi
     cd "$llvm_root"
     AOSP_ROOT="$android_root" LLVM_ANDROID_ARCHES=loongarch64 \
     CFLAGS="-B$host_gcc_lib" \
-    CXXFLAGS="-B$host_gcc_lib" \
+    CXXFLAGS="-B$host_gcc_lib -isystem $host_libcxx_include" \
     LDFLAGS="-B$host_gcc_lib -L$host_gcc_lib -L$host_target_lib" \
         "$llvm_python" "$llvm_build" \
         --build-name "loongarch64-$version" \
