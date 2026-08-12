@@ -15,7 +15,10 @@ mkdir -p "$android_root"
 "$script_dir/install-local-manifests.sh" "$android_root" "$release_tag"
 (
     cd "$android_root"
-    repo sync -c -j8
+    # Fetch concurrently but serialize checkout.  This avoids repo's parallel
+    # checkout deadlock with very large clone bundles on WSL2.
+    repo sync -c -j8 -n
+    repo sync -c -j1 -l
 )
 "$script_dir/apply-patches.sh" "$android_root"
 
