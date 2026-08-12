@@ -2,5 +2,5 @@
 <manifest>
   <remote name="ghub" fetch="https://github.com/" />
   <remote name="gitlab" fetch="https://gitlab.com/" />
-  <remote name="loongarch" fetch="https://github.com/" sync-tags="false" />
+  <remote name="loongarch" fetch="https://github.com/" />
 </manifest>

@@ -15,7 +15,7 @@ sync_projects() {
     # Fetch concurrently, then serialize worktree checkout.  On WSL2, repo's
     # parallel checkout can leave its final worker waiting on an exited Git
     # process after large clone bundles have already been unpacked.
-    repo sync -c -j8 -n
+    repo sync -c -j8 -n --no-tags
     repo sync -c -j1 -l
 }
 
