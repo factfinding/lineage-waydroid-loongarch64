@@ -33,7 +33,7 @@ test "$(git -C "$rust_root/toolchain/rustc" rev-parse 'HEAD^{tree}')" = \
         --no-build=windows,lldb \
         --no-lto --no-pgo --no-bolt \
         --skip-tests --skip-package --skip-runtimes \
-        --skip-source-setup --skip-apply-patches --no-incremental
+        --skip-apply-patches --no-incremental
 )
 
 # A freestanding compiler-rt archive breaks the initial bionic/toolchain
