@@ -2,7 +2,33 @@
 
 The Android product currently uses a locally rebuilt LLVM 21 toolchain and Rust 1.88 host tools. Their binary payloads are not committed to this repository. The source changes used for those builds are published here as author-preserving patch queues.
 
-This is development documentation, not yet a clean-room reproducible binary release. Absolute paths from the original build have been removed from the instructions below; a self-contained bootstrap wrapper remains to be written and validated before a release tag is created.
+This is development documentation, not yet a clean-room reproducible binary release. The pinned manifests and self-contained bootstrap scripts are public, but the complete clean build still has to be run and its binary checksums frozen before the source prerelease can be promoted.
+
+## Bootstrap workflow
+
+From a `v0.2.2` checkout, synchronize the exact LLVM and Rust inputs:
+
+```bash
+scripts/sync-toolchains.sh /path/to/toolchain-workspace v0.2.2
+```
+
+After synchronizing and patching the matching Android source tree, build both toolchains:
+
+```bash
+scripts/build-toolchains.sh \
+  /path/to/toolchain-workspace \
+  /path/to/lineage-waydroid-23.2 \
+  /path/to/toolchain-workspace/dist
+```
+
+The build has four explicit stages:
+
+1. Build an LLVM 21 host compiler without Android device runtimes.
+2. Build a freestanding LoongArch64 compiler-rt archive and use it to build the minimum bionic sysroot objects.
+3. Build the complete LLVM 21 LoongArch64 Android runtime set and install it into the Android tree.
+4. Build Rust 1.88 against that LLVM 21 package and install it into the Android tree.
+
+No existing LoongArch64 compiler or runtime binary is an input to stage 1 or stage 2. The stage-0 archive uses the newly built LLVM host compiler, the pinned NDK r28 headers and the tagged Android bionic/kernel headers.
 
 ## LLVM 21
 
@@ -53,4 +79,4 @@ toolchain/android_rust/tools/build.py \
   --no-copy-and-patch
 ```
 
-Before a formal release, both toolchains will be rebuilt from a clean checkout and their manifests, commands, archives and SHA256 sums will be frozen together.
+The output directory contains the LLVM archive, Rust archive, stage-0 archive and `SHA256SUMS`. Before a formal release, this workflow will be run from clean checkouts and those checksums will be frozen together.

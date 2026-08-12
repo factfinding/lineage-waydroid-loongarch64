@@ -39,7 +39,16 @@ The script verifies both the expected base and the resulting source tree. Patch 
 
 ## 4. Build target
 
-After the toolchain bootstrap is published:
+Build and install the pinned LLVM 21 and Rust 1.88 toolchains before the product build:
+
+```bash
+../lineage-waydroid-loongarch64/scripts/sync-toolchains.sh \
+  /path/to/toolchain-workspace v0.2.2
+../lineage-waydroid-loongarch64/scripts/build-toolchains.sh \
+  /path/to/toolchain-workspace "$PWD"
+```
+
+Then build the product:
 
 ```bash
 source build/envsetup.sh
@@ -48,3 +57,5 @@ m -j8 systemimage vendorimage
 ```
 
 The current WSL2 build environment must not exceed `-j8` because larger parallel builds have exhausted memory in practice.
+
+The scripts and pinned inputs are public, but `v0.2.2` remains a prerelease until this entire sequence, WebView packaging and the image build have completed in clean directories.

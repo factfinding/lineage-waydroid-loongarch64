@@ -1,0 +1,79 @@
+From e4e78cef25813720d32b68b85ea9355c198325cb Mon Sep 17 00:00:00 2001
+From: noctis <970308389@qq.com>
+Date: Sun, 19 Jul 2026 11:02:53 +0800
+Subject: [PATCH] clang: add LoongArch64 compiler runtime prebuilts
+
+Change-Id: I3728a9358b973a77d53e0bbd891172a3d8ef7cff
+
+diff --git a/soong/clangprebuilts.go b/soong/clangprebuilts.go
+index 761873a8..048d8be7 100644
+--- a/soong/clangprebuilts.go
++++ b/soong/clangprebuilts.go
+@@ -153,6 +153,7 @@ type archInnerProps struct {
+ type archProps struct {
+ 	Android_arm         archInnerProps
+ 	Android_arm64       archInnerProps
++	Android_loongarch64 archInnerProps
+ 	Android_riscv64     archInnerProps
+ 	Android_x86         archInnerProps
+ 	Android_x86_64      archInnerProps
+@@ -160,6 +161,7 @@ type archProps struct {
+ 	Linux_bionic_x86_64 archInnerProps
+ 	Glibc_x86           archInnerProps
+ 	Glibc_x86_64        archInnerProps
++	Glibc_loongarch64   archInnerProps
+ 	Linux_musl_x86      archInnerProps
+ 	Linux_musl_x86_64   archInnerProps
+ 	Linux_musl_arm      archInnerProps
+@@ -172,6 +174,7 @@ type archProps struct {
+ func invokeOnAndroidTargets(p *archProps, fn func(ap *archInnerProps, arch string)) {
+ 	fn(&p.Android_arm, "arm")
+ 	fn(&p.Android_arm64, "aarch64")
++	fn(&p.Android_loongarch64, "loongarch64")
+ 	fn(&p.Android_riscv64, "riscv64")
+ 	fn(&p.Android_x86, "i386")
+ 	fn(&p.Android_x86_64, "x86_64")
+@@ -219,6 +222,7 @@ func llvmPrebuiltLibraryShared(ctx android.LoadHookContext) {
+ 		}
+ 		setHostProps(&p.Target.Glibc_x86, "i386-unknown-linux-gnu")
+ 		setHostProps(&p.Target.Glibc_x86_64, "x86_64-unknown-linux-gnu")
++		setHostProps(&p.Target.Glibc_loongarch64, "loongarch64-unknown-linux-gnu")
+ 		setHostProps(&p.Target.Linux_musl_arm, "arm-unknown-linux-musleabihf")
+ 		setHostProps(&p.Target.Linux_musl_arm64, "aarch64-unknown-linux-musl")
+ 		setHostProps(&p.Target.Linux_musl_x86, "i686-unknown-linux-musl")
+@@ -287,6 +291,7 @@ func llvmPrebuiltLibraryStatic(ctx android.LoadHookContext) {
+ 		}
+ 		setHostProps(&p.Target.Glibc_x86, "i386-unknown-linux-gnu")
+ 		setHostProps(&p.Target.Glibc_x86_64, "x86_64-unknown-linux-gnu")
++		setHostProps(&p.Target.Glibc_loongarch64, "loongarch64-unknown-linux-gnu")
+ 		setHostProps(&p.Target.Linux_musl_arm, "arm-unknown-linux-musleabihf")
+ 		setHostProps(&p.Target.Linux_musl_arm64, "aarch64-unknown-linux-musl")
+ 		setHostProps(&p.Target.Linux_musl_x86, "i686-unknown-linux-musl")
+@@ -452,6 +457,8 @@ func libClangRtPrebuiltLibraryShared(ctx android.LoadHookContext, libProps *preb
+ 	p.Target.Android_arm.Stem = proptools.StringPtr(name + "-arm-android" + suffix)
+ 	p.Target.Android_arm64.Srcs = []string{path.Join(libDir, name+"-aarch64-android"+suffix+".so")}
+ 	p.Target.Android_arm64.Stem = proptools.StringPtr(name + "-aarch64-android" + suffix)
++	p.Target.Android_loongarch64.Srcs = []string{path.Join(libDir, name+"-loongarch64-android"+suffix+".so")}
++	p.Target.Android_loongarch64.Stem = proptools.StringPtr(name + "-loongarch64-android" + suffix)
+ 	p.Target.Android_riscv64.Srcs = []string{path.Join(libDir, name+"-riscv64-android"+suffix+".so")}
+ 	p.Target.Android_riscv64.Stem = proptools.StringPtr(name + "-riscv64-android" + suffix)
+ 	p.Target.Android_x86.Srcs = []string{path.Join(libDir, name+"-i686-android"+suffix+".so")}
+@@ -496,6 +503,8 @@ func libClangRtPrebuiltLibraryShared(ctx android.LoadHookContext, libProps *preb
+ 		p.Target.Android_arm.Llndk.Symbol_file = proptools.StringPtr(getSymbolFilePath(ctx, "-arm-android"))
+ 		p.Target.Android_arm64.Stubs.Symbol_file = proptools.StringPtr(getSymbolFilePath(ctx, "-aarch64-android"))
+ 		p.Target.Android_arm64.Llndk.Symbol_file = proptools.StringPtr(getSymbolFilePath(ctx, "-aarch64-android"))
++		p.Target.Android_loongarch64.Stubs.Symbol_file = proptools.StringPtr(getSymbolFilePath(ctx, "-loongarch64-android"))
++		p.Target.Android_loongarch64.Llndk.Symbol_file = proptools.StringPtr(getSymbolFilePath(ctx, "-loongarch64-android"))
+ 		p.Target.Android_riscv64.Stubs.Symbol_file = proptools.StringPtr(getSymbolFilePath(ctx, "-riscv64-android"))
+ 		p.Target.Android_riscv64.Llndk.Symbol_file = proptools.StringPtr(getSymbolFilePath(ctx, "-riscv64-android"))
+ 		p.Target.Android_x86.Stubs.Symbol_file = proptools.StringPtr(getSymbolFilePath(ctx, "-i686-android"))
+@@ -525,6 +534,7 @@ func libClangRtPrebuiltLibraryStatic(ctx android.LoadHookContext, libProps *preb
+ 
+ 	p.Target.Android_arm.Srcs = []string{path.Join(libDir, name+"-arm-android"+suffix+".a")}
+ 	p.Target.Android_arm64.Srcs = []string{path.Join(libDir, name+"-aarch64-android"+suffix+".a")}
++	p.Target.Android_loongarch64.Srcs = []string{path.Join(libDir, name+"-loongarch64-android"+suffix+".a")}
+ 	p.Target.Android_riscv64.Srcs = []string{path.Join(libDir, name+"-riscv64-android"+suffix+".a")}
+ 	p.Target.Android_x86.Srcs = []string{path.Join(libDir, name+"-i686-android"+suffix+".a")}
+ 	p.Target.Android_x86_64.Srcs = []string{path.Join(libDir, name+"-x86_64-android"+suffix+".a")}
+-- 
+2.43.0
