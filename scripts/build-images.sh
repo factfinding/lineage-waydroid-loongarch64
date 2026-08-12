@@ -11,6 +11,7 @@ product_out="$android_root/out/target/product/waydroid_loongarch64"
 mkdir -p "$dist_dir"
 (
     cd "$android_root"
+    set +u
     source build/envsetup.sh
     lunch lineage_waydroid_loongarch64-bp4a-userdebug
     m -j8 systemimage vendorimage
