@@ -1,0 +1,61 @@
+From 3a3f9d2c94c47ae8a962e479dbe469f160a9355c Mon Sep 17 00:00:00 2001
+From: noctis <970308389@qq.com>
+Date: Tue, 4 Aug 2026 01:35:45 +0800
+Subject: [PATCH] minigbm: avoid nested C99 designators in C++
+
+---
+ gbm_mesa_driver/gbm_mesa_wrapper.cpp | 34 +++++++++++++---------------
+ 1 file changed, 16 insertions(+), 18 deletions(-)
+
+diff --git a/gbm_mesa_driver/gbm_mesa_wrapper.cpp b/gbm_mesa_driver/gbm_mesa_wrapper.cpp
+index 114e369..8a493ab 100644
+--- a/gbm_mesa_driver/gbm_mesa_wrapper.cpp
++++ b/gbm_mesa_driver/gbm_mesa_wrapper.cpp
+@@ -164,15 +164,14 @@ static int gbm_mesa_alloc(struct alloc_args *args)
+ 		 * different from map_stride after calling gbm_import, We care only about map_stride
+ 		 * after importing. Issue does not affect arm systems. */
+ 
+-		struct gbm_import_fd_modifier_data data = {
+-			.width = args->width,
+-			.height = args->height,
+-			.format = gbm_format,
+-			.num_fds = 1,
+-			.fds[0] = args->out_fd,
+-			.strides[0] = (int)args->out_stride,
+-			.modifier = args->out_modifier,
+-		};
++		struct gbm_import_fd_modifier_data data = {};
++		data.width = args->width;
++		data.height = args->height;
++		data.format = gbm_format;
++		data.num_fds = 1;
++		data.fds[0] = args->out_fd;
++		data.strides[0] = (int)args->out_stride;
++		data.modifier = args->out_modifier;
+ 		void *addr = NULL;
+ 		void *map_data = NULL;
+ 
+@@ -205,15 +204,14 @@ static struct gbm_bo *gbm_import(struct gbm_device *gbm, int buf_fd, uint32_t wi
+ 				 uint32_t drm_format)
+ {
+ 	struct gbm_bo *bo = NULL;
+-	struct gbm_import_fd_modifier_data data = {
+-		.width = width,
+-		.height = height,
+-		.format = get_gbm_mesa_format(drm_format),
+-		.num_fds = 1,
+-		.fds[0] = buf_fd,
+-		.strides[0] = (int)stride,
+-		.modifier = modifier,
+-	};
++	struct gbm_import_fd_modifier_data data = {};
++	data.width = width;
++	data.height = height;
++	data.format = get_gbm_mesa_format(drm_format);
++	data.num_fds = 1;
++	data.fds[0] = buf_fd;
++	data.strides[0] = (int)stride;
++	data.modifier = modifier;
+ 
+ 	bo = gbm_bo_import(gbm, GBM_BO_IMPORT_FD_MODIFIER, &data, 0);
+ 
