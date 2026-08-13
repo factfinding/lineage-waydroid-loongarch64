@@ -1,0 +1,33 @@
+From 934a7887051e083af1610efed27aa9f18ec35fa1 Mon Sep 17 00:00:00 2001
+From: noctis <970308389@qq.com>
+Date: Thu, 13 Aug 2026 13:01:28 +0800
+Subject: [PATCH] llvm_android: filter Android TSan runtime architectures
+
+Include LoongArch64 in the Android NDK TSan configurations and honor
+LLVM_ANDROID_ARCHES, matching the other Android runtime builders. This avoids
+attempting ARM and x86 runtimes against a LoongArch-only bootstrap sysroot.
+---
+ src/llvm_android/configs.py | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
+
+diff --git a/src/llvm_android/configs.py b/src/llvm_android/configs.py
+index 306833a..4611104 100644
+--- a/src/llvm_android/configs.py
++++ b/src/llvm_android/configs.py
+@@ -767,8 +767,14 @@ def android_ndk_tsan_configs() -> List[Config]:
+     configs = [
+         AndroidAArch64Config(),
+         AndroidX64Config(),
++        AndroidLoongArch64Config(),
+     ]
++    requested_arches = os.environ.get('LLVM_ANDROID_ARCHES')
++    if requested_arches:
++        requested = set(requested_arches.split(','))
++        configs = [config for config in configs if config.target_arch.value in requested]
+     for config in configs:
+-        config.override_api_level = 24
++        if config.target_arch != hosts.Arch.LOONGARCH64:
++            config.override_api_level = 24
+     # List is not covariant. Explicit convert is required to make it List[Config].
+-- 
+2.43.0

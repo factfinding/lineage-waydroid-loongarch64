@@ -1,0 +1,40 @@
+From ac7de5e10fb8e10cea9ea246effbd682dfa72879 Mon Sep 17 00:00:00 2001
+From: noctis <970308389@qq.com>
+Date: Thu, 13 Aug 2026 12:51:52 +0800
+Subject: [PATCH] compiler-rt: get Android TLS on LoongArch correctly
+
+LoongArch uses the move mnemonic and the $tp register spelling. Do not share
+the RISC-V inline assembly when obtaining Bionic sanitizer TLS.
+---
+ compiler-rt/lib/sanitizer_common/sanitizer_linux.h | 9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
+
+diff --git a/compiler-rt/lib/sanitizer_common/sanitizer_linux.h b/compiler-rt/lib/sanitizer_common/sanitizer_linux.h
+index b945ef4141b6..2d15cc57c036 100644
+--- a/compiler-rt/lib/sanitizer_common/sanitizer_linux.h
++++ b/compiler-rt/lib/sanitizer_common/sanitizer_linux.h
+@@ -165,13 +165,20 @@ inline void ReleaseMemoryPagesToOSAndZeroFill(uptr beg, uptr end) {
+               : "=r"(__v));              \
+           __v;                           \
+         })
+-#    elif defined(__riscv) || defined(__loongarch__)
++#    elif defined(__riscv)
+ #      define __get_tls()                   \
+         ({                                  \
+           void **__v;                       \
+           __asm__("mv %0, tp" : "=r"(__v)); \
+           __v;                              \
+         })
++#    elif defined(__loongarch__)
++#      define __get_tls()                        \
++        ({                                       \
++          void **__v;                            \
++          __asm__("move %0, $tp" : "=r"(__v));  \
++          __v;                                   \
++        })
+ #    elif defined(__i386__)
+ #      define __get_tls()                         \
+         ({                                        \
+-- 
+2.43.0
+

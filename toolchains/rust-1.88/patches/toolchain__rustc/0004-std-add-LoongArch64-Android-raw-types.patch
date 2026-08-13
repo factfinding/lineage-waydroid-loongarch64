@@ -1,0 +1,28 @@
+From 05e34658f217cfcbc188e89ba5489df2c1573c46 Mon Sep 17 00:00:00 2001
+From: noctis <970308389@qq.com>
+Date: Wed, 12 Aug 2026 23:32:37 +0800
+Subject: [PATCH] std: add LoongArch64 Android raw types
+
+LoongArch64 uses Android's generic 64-bit stat layout, matching the existing AArch64 and RISC-V definitions.
+---
+ library/std/src/os/android/raw.rs | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/library/std/src/os/android/raw.rs b/library/std/src/os/android/raw.rs
+index 175f8eac971..c5abb9a7dfd 100644
+--- a/library/std/src/os/android/raw.rs
++++ b/library/std/src/os/android/raw.rs
+@@ -89,7 +89,11 @@ mod arch {
+     }
+ }
+ 
+-#[cfg(any(target_arch = "aarch64", target_arch = "riscv64"))]
++#[cfg(any(
++    target_arch = "aarch64",
++    target_arch = "riscv64",
++    target_arch = "loongarch64"
++))]
+ mod arch {
+     use crate::os::raw::{c_int, c_long, c_uint, c_ulong};
+     use crate::os::unix::raw::{gid_t, uid_t};
+

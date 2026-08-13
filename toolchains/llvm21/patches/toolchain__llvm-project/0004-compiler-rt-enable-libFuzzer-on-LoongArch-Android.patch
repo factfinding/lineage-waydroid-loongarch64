@@ -1,0 +1,29 @@
+From 58e1833cefc88e3b2ced9bc8ab34d0112a18e001 Mon Sep 17 00:00:00 2001
+From: noctis <970308389@qq.com>
+Date: Thu, 13 Aug 2026 12:58:07 +0800
+Subject: [PATCH] compiler-rt: enable libFuzzer on LoongArch Android
+
+LoongArch64 is already a supported libFuzzer architecture on Linux. Include
+it in the Android architecture set so the Android toolchain package exports
+libFuzzer as expected.
+---
+ compiler-rt/cmake/Modules/AllSupportedArchDefs.cmake | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/compiler-rt/cmake/Modules/AllSupportedArchDefs.cmake b/compiler-rt/cmake/Modules/AllSupportedArchDefs.cmake
+index 2683259e93e3..d66d28ec19ff 100644
+--- a/compiler-rt/cmake/Modules/AllSupportedArchDefs.cmake
++++ b/compiler-rt/cmake/Modules/AllSupportedArchDefs.cmake
+@@ -50,7 +50,8 @@ if(OS_NAME MATCHES "Linux")
+ elseif (OS_NAME MATCHES "Windows")
+   set(ALL_FUZZER_SUPPORTED_ARCH ${X86} ${X86_64})
+ elseif(OS_NAME MATCHES "Android")
+-  set(ALL_FUZZER_SUPPORTED_ARCH ${X86} ${X86_64} ${ARM32} ${ARM64} ${RISCV64})
++  set(ALL_FUZZER_SUPPORTED_ARCH ${X86} ${X86_64} ${ARM32} ${ARM64} ${RISCV64}
++      ${LOONGARCH64})
+ elseif(OS_NAME MATCHES "Fuchsia")
+   set(ALL_FUZZER_SUPPORTED_ARCH ${X86_64} ${ARM64} ${RISCV64})
+ elseif(OS_NAME MATCHES "FreeBSD")
+-- 
+2.43.0
+

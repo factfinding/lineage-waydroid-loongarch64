@@ -28,7 +28,7 @@
   <project path="prebuilts/go/linux-x86" name="platform/prebuilts/go/linux-x86" revision="c0a0954aed5d3afbfffce56fe46b58b1f60f8b7c" clone-depth="1" />
   <project path="prebuilts/ninja/linux-x86" name="platform/prebuilts/ninja/linux-x86" revision="8a10824f74fe0e22af9bf314a837f5b70e2bb67f" clone-depth="1" />
   <project path="prebuilts/python/linux-x86" name="platform/prebuilts/python/linux-x86" revision="fce2346610379fdcce9dc7423c0e9a04e1a43cbf" clone-depth="1" />
-  <project path="prebuilts/rust" name="platform/prebuilts/rust" revision="a16023dd722ff4ca5630e5975c98ba728e2f2c83" clone-depth="1" />
+  <project path="prebuilts/rust" name="platform/prebuilts/rust" revision="06a4f29f8512c6b77bdce81dd036a3e39954803b" clone-depth="1" />
   <project path="build/soong" name="platform/build/soong" revision="3fcc4ef8fe6a10ffd267586a49ec27261058ab7e">
     <linkfile dest="Android.bp" src="root.bp" />
     <linkfile dest="bootstrap.bash" src="bootstrap.bash" />
