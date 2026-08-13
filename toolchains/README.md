@@ -2,7 +2,7 @@
 
 The Android product currently uses a locally rebuilt LLVM 21 toolchain and Rust 1.88 host tools. Their binary payloads are not committed to this repository. The source changes used for those builds are published here as author-preserving patch queues.
 
-This is development documentation, not yet a clean-room reproducible binary release. The pinned manifests and self-contained bootstrap scripts are public, but the complete clean build still has to be run and its binary checksums frozen before the source prerelease can be promoted.
+The pinned manifests and self-contained bootstrap scripts are public. A complete clean build was verified on 2026-08-13; the resulting checksums are recorded in [`docs/REPRODUCIBILITY.md`](../docs/REPRODUCIBILITY.md). Binary publication is handled separately from the source tag.
 
 ## Bootstrap workflow
 
@@ -79,4 +79,4 @@ toolchain/android_rust/tools/build.py \
   --no-copy-and-patch
 ```
 
-The output directory contains the LLVM archive, Rust archive, stage-0 archive and `SHA256SUMS`. Before a formal release, this workflow will be run from clean checkouts and those checksums will be frozen together.
+The output directory contains the LLVM archive, Rust archive, stage-0 archives and `SHA256SUMS`. The clean-build digests frozen for `v0.2.2` are listed in [`docs/REPRODUCIBILITY.md`](../docs/REPRODUCIBILITY.md).

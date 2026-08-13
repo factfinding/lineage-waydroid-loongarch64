@@ -1,6 +1,6 @@
 # Development build
 
-The source branches and patch queues are public, but the Clang 21 and Rust 1.88 bootstrap artifacts are not published yet. These instructions therefore describe the source-sync stage; a clean end-to-end public build is not claimed yet.
+The source branches, patch queues and complete bootstrap scripts are public. The LLVM 21 and Rust 1.88 bootstrap plus the LineageOS image build have been verified from clean workspaces. Their large binary outputs are not stored in Git history.
 
 ## 1. Synchronize LineageOS 23.2
 
@@ -84,4 +84,4 @@ The script checks out the tagged Chromium source, pins depot_tools, synchronizes
 
 The current WSL2 build environment must not exceed `-j8` because larger parallel builds have exhausted memory in practice.
 
-The scripts and pinned inputs are public, but `v0.2.2` remains a prerelease until this entire sequence, WebView packaging and the image build have completed in clean directories.
+The toolchain and image stages were clean-build verified for `v0.2.2`. The standalone WebView stage remains pending clean verification; this does not prevent using `v0.2.2` as the coordinated public source tag.
