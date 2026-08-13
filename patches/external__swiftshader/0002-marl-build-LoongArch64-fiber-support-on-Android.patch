@@ -1,0 +1,22 @@
+From 47069e3c5b11fa3a3e3d1d48b8c09ea01edc5c69 Mon Sep 17 00:00:00 2001
+From: noctis <970308389@qq.com>
+Date: Tue, 4 Aug 2026 02:06:49 +0800
+Subject: [PATCH 2/2] marl: build LoongArch64 fiber support on Android
+
+Change-Id: Iad79bb5f18c46aa7250c0796d9e3a161d2215a62
+---
+ third_party/marl/Android.bp | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/third_party/marl/Android.bp b/third_party/marl/Android.bp
+index 38c56438f..f035652d6 100644
+--- a/third_party/marl/Android.bp
++++ b/third_party/marl/Android.bp
+@@ -61,6 +61,7 @@ cc_library_static {
+         arm64: { srcs: ["src/osfiber_aarch64.c", "src/osfiber_asm_aarch64.S"], },
+         x86: { srcs: ["src/osfiber_x86.c", "src/osfiber_asm_x86.S"], },
+         x86_64: { srcs: ["src/osfiber_x64.c", "src/osfiber_asm_x64.S"], },
++        loongarch64: { srcs: ["src/osfiber_loongarch64.c", "src/osfiber_asm_loongarch64.S"], },
+         riscv64: { srcs: ["src/osfiber_rv64.c", "src/osfiber_asm_rv64.S"], },
+     },
+     cflags: [
