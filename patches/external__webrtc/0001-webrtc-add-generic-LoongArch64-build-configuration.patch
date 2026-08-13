@@ -1,0 +1,155 @@
+From 6eec18e9617dfaa913559442c0d11bce46b3ac53 Mon Sep 17 00:00:00 2001
+From: noctis <970308389@qq.com>
+Date: Tue, 4 Aug 2026 01:52:11 +0800
+Subject: [PATCH] webrtc: add generic LoongArch64 build configuration
+
+Change-Id: I159e06a5777abfc2acd7df3a1f9c3f4c1b2f6477
+---
+ Android.bp | 50 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 50 insertions(+)
+
+diff --git a/Android.bp b/Android.bp
+index 985155c69a..2bf1aa63f3 100644
+--- a/Android.bp
++++ b/Android.bp
+@@ -151,6 +151,8 @@ cc_defaults {
+                 "-DWEBRTC_HAS_NEON",
+             ],
+         },
++        loongarch64: {
++        },
+         riscv64: {
+         },
+         x86_64: {
+@@ -353,6 +355,9 @@ cc_library_static {
+         arm64: {
+             enabled: false,
+         },
++        loongarch64: {
++            enabled: false,
++        },
+         riscv64: {
+             enabled: false,
+         },
+@@ -1646,6 +1651,9 @@ cc_library_static {
+         arm64: {
+             enabled: false,
+         },
++        loongarch64: {
++            enabled: false,
++        },
+         riscv64: {
+             enabled: false,
+         },
+@@ -1706,6 +1714,12 @@ cc_library_static {
+                 "common_audio/signal_processing/filter_ar_fast_q12.c",
+             ],
+         },
++        loongarch64: {
++            srcs: [
++                "common_audio/signal_processing/complex_bit_reverse.c",
++                "common_audio/signal_processing/filter_ar_fast_q12.c",
++            ],
++        },
+         riscv64: {
+             srcs: [
+                 "common_audio/signal_processing/complex_bit_reverse.c",
+@@ -1742,6 +1756,9 @@ cc_library_static {
+         arm64: {
+             enabled: false,
+         },
++        loongarch64: {
++            enabled: false,
++        },
+         riscv64: {
+             enabled: false,
+         },
+@@ -1776,6 +1793,9 @@ cc_library_static {
+     ],
+     host_supported: true,
+     arch: {
++        loongarch64: {
++            enabled: false,
++        },
+         riscv64: {
+             enabled: false,
+         },
+@@ -1801,6 +1821,9 @@ cc_library_static {
+     ],
+     host_supported: true,
+     arch: {
++        loongarch64: {
++            enabled: false,
++        },
+         riscv64: {
+             enabled: false,
+         },
+@@ -1831,6 +1854,9 @@ cc_library_static {
+         arm64: {
+             enabled: false,
+         },
++        loongarch64: {
++            enabled: false,
++        },
+         riscv64: {
+             enabled: false,
+         },
+@@ -1960,6 +1986,12 @@ cc_library_static {
+                 "-DHAVE_SSE42=0",
+             ],
+         },
++        loongarch64: {
++            cflags: [
++                "-DHAVE_MM_PREFETCH=0",
++                "-DHAVE_SSE42=0",
++            ],
++        },
+         riscv64: {
+             cflags: [
+                 "-DHAVE_MM_PREFETCH=0",
+@@ -2009,6 +2041,12 @@ cc_library_static {
+                 "-DHAVE_SSE42=0",
+             ],
+         },
++        loongarch64: {
++            cflags: [
++                "-DHAVE_MM_PREFETCH=0",
++                "-DHAVE_SSE42=0",
++            ],
++        },
+         riscv64: {
+             cflags: [
+                 "-DHAVE_MM_PREFETCH=0",
+@@ -2058,6 +2096,12 @@ cc_library_static {
+                 "-DHAVE_SSE42=0",
+             ],
+         },
++        loongarch64: {
++            cflags: [
++                "-DHAVE_MM_PREFETCH=0",
++                "-DHAVE_SSE42=0",
++            ],
++        },
+         riscv64: {
+             cflags: [
+                 "-DHAVE_MM_PREFETCH=0",
+@@ -3902,6 +3946,9 @@ cc_library_static {
+         arm64: {
+             enabled: false,
+         },
++        loongarch64: {
++            enabled: false,
++        },
+         riscv64: {
+             enabled: false,
+         },
+@@ -4661,6 +4708,9 @@ cc_library_static {
+         arm64: {
+             srcs: ["common_audio/third_party/spl_sqrt_floor/spl_sqrt_floor.c"],
+         },
++        loongarch64: {
++            srcs: ["common_audio/third_party/spl_sqrt_floor/spl_sqrt_floor.c"],
++        },
+         riscv64: {
+             srcs: ["common_audio/third_party/spl_sqrt_floor/spl_sqrt_floor.c"],
+         },
