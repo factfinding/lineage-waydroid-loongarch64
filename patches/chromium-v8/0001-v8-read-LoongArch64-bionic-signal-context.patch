@@ -1,0 +1,20 @@
+diff --git a/src/libsampler/sampler.cc b/src/libsampler/sampler.cc
+index 16cd153d..c21ff651 100644
+--- a/src/libsampler/sampler.cc
++++ b/src/libsampler/sampler.cc
+@@ -446,9 +446,15 @@ void SignalHandler::FillRegisterState(void* context, RegisterState* state) {
+   state->sp = reinterpret_cast<void*>(mcontext.gregs[29]);
+   state->fp = reinterpret_cast<void*>(mcontext.gregs[30]);
+ #elif V8_HOST_ARCH_LOONG64
++#if V8_OS_ANDROID
++  state->pc = reinterpret_cast<void*>(mcontext.sc_pc);
++  state->sp = reinterpret_cast<void*>(mcontext.sc_regs[3]);
++  state->fp = reinterpret_cast<void*>(mcontext.sc_regs[22]);
++#else
+   state->pc = reinterpret_cast<void*>(mcontext.__pc);
+   state->sp = reinterpret_cast<void*>(mcontext.__gregs[3]);
+   state->fp = reinterpret_cast<void*>(mcontext.__gregs[22]);
++#endif
+ #elif V8_HOST_ARCH_PPC64
+ #if V8_LIBC_GLIBC
+   state->pc = reinterpret_cast<void*>(ucontext->uc_mcontext.regs->nip);

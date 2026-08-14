@@ -84,4 +84,4 @@ The script checks out the tagged Chromium source, pins depot_tools, synchronizes
 
 The current WSL2 build environment must not exceed `-j8` because larger parallel builds have exhausted memory in practice.
 
-The toolchain and image stages were clean-build verified for `v0.2.2`. The standalone WebView stage remains pending clean verification; this does not prevent using `v0.2.2` as the coordinated public source tag.
+The toolchain, standalone WebView, and image stages were clean-build verified for `v0.2.2`.

@@ -7,7 +7,7 @@
 `v0.2.2` 是首个带版本标签的公开源码快照。`projects.tsv` 记录了该快照使用的各项目精确提交及源码树；兼容性与性能工作会继续在开发分支中推进。
 
 > [!NOTE]
-> 工具链公开引导流程和 LineageOS 镜像的干净构建已经验证；独立 Chromium WebView APK 的干净重建仍待完成，详见[可复现性状态](docs/REPRODUCIBILITY.md)。
+> 工具链公开引导流程、独立 Chromium WebView APK 和 LineageOS 镜像的干净构建均已验证，详见[可复现性状态](docs/REPRODUCIBILITY.md)。
 
 当前系统已经能在 AOSC OS LoongArch64 主机上启动至 `sys.boot_completed=1`。原生 LoongArch64 ART、bionic、WebView、音频、网络和 Mesa 图形栈均经过运行验证。ARM64 应用原生库通过 LoongArch64 Berberis Native Bridge 运行，兼容性和转译性能仍在持续开发。
 

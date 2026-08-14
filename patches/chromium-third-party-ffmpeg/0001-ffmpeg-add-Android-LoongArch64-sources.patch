@@ -1,0 +1,54 @@
+diff --git a/ffmpeg_generated.gni b/ffmpeg_generated.gni
+index 145ceba..ddbfe0b 100644
+--- a/ffmpeg_generated.gni
++++ b/ffmpeg_generated.gni
+@@ -80,6 +80,7 @@ ffmpeg_asm_include_dirs += [
+ 
+ if (current_cpu == "arm64" || current_cpu == "arm64e" || current_cpu == "x64" ||
+     (is_android && current_cpu == "arm") ||
++    (is_android && current_cpu == "loong64") ||
+     (is_android && current_cpu == "x86") || is_apple || is_win ||
+     use_linux_config) {
+   ffmpeg_c_sources += [
+@@ -294,6 +295,7 @@ if (current_cpu == "arm64" || current_cpu == "arm64e" || current_cpu == "x64" ||
+ if (((current_cpu == "arm64" || current_cpu == "arm64e") &&
+      ffmpeg_branding == "Chrome") ||
+     (current_cpu == "x64" && ffmpeg_branding == "Chrome") ||
++    (is_android && current_cpu == "loong64" && ffmpeg_branding == "Chrome") ||
+     (is_android && current_cpu == "x86" && ffmpeg_branding == "Chrome") ||
+     (is_apple && ffmpeg_branding == "Chrome") ||
+     (is_win && ffmpeg_branding == "Chrome") ||
+@@ -366,6 +368,7 @@ if (((current_cpu == "arm64" || current_cpu == "arm64e") &&
+      ffmpeg_branding == "Chrome") ||
+     (current_cpu == "x64" && ffmpeg_branding == "Chrome") ||
+     (is_android && current_cpu == "arm" && ffmpeg_branding == "Chrome") ||
++    (is_android && current_cpu == "loong64" && ffmpeg_branding == "Chrome") ||
+     (is_android && current_cpu == "x86" && ffmpeg_branding == "Chrome") ||
+     (is_apple && ffmpeg_branding == "Chrome") ||
+     (is_win && ffmpeg_branding == "Chrome") ||
+@@ -450,6 +453,17 @@ if (use_linux_config && current_cpu == "riscv64" &&
+   ]
+ }
+ 
++if (is_android && current_cpu == "loong64") {
++  ffmpeg_c_sources += [
++    "libavcodec/loongarch/h264_intrapred_init_loongarch.c",
++    "libavcodec/loongarch/h264chroma_init_loongarch.c",
++    "libavcodec/loongarch/h264dsp_init_loongarch.c",
++    "libavcodec/loongarch/h264qpel_init_loongarch.c",
++    "libavcodec/loongarch/videodsp_init.c",
++    "libavutil/loongarch/cpu.c",
++  ]
++}
++
+ if ((current_cpu == "arm64" || current_cpu == "arm64e") &&
+     ffmpeg_branding == "Chrome") {
+   ffmpeg_c_sources += [
+@@ -577,6 +591,7 @@ if (current_cpu == "x64" || (is_android && current_cpu == "x86") ||
+ 
+ if ((is_android && (current_cpu == "arm64" || current_cpu == "arm64e")) ||
+     (is_android && current_cpu == "arm") ||
++    (is_android && current_cpu == "loong64") ||
+     (is_android && current_cpu == "x64") ||
+     (is_android && current_cpu == "x86")) {
+   ffmpeg_c_sources += [ "compat/strtod.c" ]
