@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+- Add a region-based ARM64-to-LoongArch64 Lite JIT with interpreter fallback.
+- Enable a write-through guest GPR cache using LoongArch64 `$s0`-`$s6`; `ThreadState` remains authoritative at every guest instruction boundary.
+- Reject deferred register writeback after application testing exposed stale guest state across exceptional generated-code exits.
+- Remove the unsuccessful Instagram-specific trap diagnostics, guest-libc protection exception, host-call recovery experiment, and ARM64 jump-buffer experiment from the active development line.
+- Pass all 113 LoongArch64 runtime-library tests on the target device and complete application-level regression testing without reproducing the earlier Instagram crash.
+
 ## v0.2.2
 
 - Publish the coordinated LineageOS 23.2 / Android 16 LoongArch64 source snapshot.
