@@ -1,6 +1,6 @@
 # Runtime and Translation Status
 
-Last updated: 2026-08-15
+Last updated: 2026-08-16
 
 This page tracks development-branch runtime results. It is not a statement about the older `v0.2.2` release unless explicitly noted.
 
@@ -37,13 +37,27 @@ The validated development build enables region-local guest GPR mapping:
 
 Immediate write-through is a correctness requirement, not merely a conservative setting. Generated code may be left through signal delivery, memory-fault recovery, helper calls, or other exceptional exits that bypass a normal region-end flush. A previous deferred-writeback design correlated with application crashes; the isolated write-through implementation has not reproduced them.
 
-## Verification on 2026-08-15
+## CFI-safe native callback closures
 
-- Built `libberberis_arm64.so` from known-good source commit `9a830d0` plus only the isolated write-through GPR-cache change. The same source is now committed as `d0cfbe2` on `loongarch64/lineage-23.2`.
-- Passed `113/113` `LoongArch64RuntimeLibraryTest` tests on the LoongArch64 Waydroid device.
-- Deployed library SHA-256: `ebd2a850ca4f7c29d48917400d59260125a83ba9031592c161d81fbc1f241536`.
+ARM64 applications can pass guest callbacks to native host libraries. Berberis uses libffi closures to adapt these callbacks to the LoongArch64 host ABI. The earlier anonymous executable closure mapping could randomly occupy a 256 KiB CFI shadow slot owned by an unrelated CFI-enabled DSO. A host indirect call would then ask that unrelated DSO to validate the closure and could terminate with `SIGILL`.
+
+Commit `e401483b` replaces anonymous executable closure mappings with a 256 KiB static trampoline table inside `libberberis_arm64.so`:
+
+- 16,384 fixed 16-byte LoongArch64 trampoline entries are part of the library's registered executable segment.
+- A dispatcher maps each entry to a process-lifetime `ffi_closure` without clobbering callback argument registers.
+- Slot allocation and publication are atomic; concurrent wrapper construction is covered by tests.
+- Pool exhaustion is fatal and explicit. There is no fallback to an unsafe anonymous executable mapping.
+
+AAudio's `AAUDIO_ERROR_ILLEGAL_ARGUMENT` (`-898`) observed during rapid uninstall/reinstall stress was diagnosed separately. Audioserver reported that the newly assigned application UID had not yet reached `NativePermissionController`; those attempts never created a stream or entered a callback and are not CFI failures.
+
+## Verification on 2026-08-16
+
+- Built `libberberis_arm64.so` from `e401483b` on `loongarch64/lineage-23.2`; it includes the validated write-through GPR cache from `d0cfbe2` and the static closure trampoline fix.
+- Passed `115/115` `LoongArch64RuntimeLibraryTest` tests on the LoongArch64 Waydroid device.
+- Deployed library SHA-256: `d5c15d3d11eef579d4251b480303448d30af5563b66fd5e3b71011576d76ffa0`.
 - Waydroid reached `sys.boot_completed=1`; the Android crash buffer was empty after deployment.
-- Manual application testing found no regression, including the previously crashing Instagram post-login path.
+- Three consecutive AAudio mode-5 runs completed about 5,000 callbacks each with no CFI, `SIGILL`, or fatal signal. A concurrent stress mode containing 1,600 stream-open attempts also completed.
+- A cold launch of `com.kurogame.mingchao` remained alive past 60 seconds. The LXC and `system_server` PIDs remained unchanged, and the process had no anonymous `berberis-ffi-closure` executable mapping.
 
 ## Remaining work
 
