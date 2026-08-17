@@ -1,6 +1,6 @@
 # Runtime and Translation Status
 
-Last updated: 2026-08-16
+Last updated: 2026-08-17
 
 This page tracks development-branch runtime results. It is not a statement about the older `v0.2.2` release unless explicitly noted.
 
@@ -37,6 +37,17 @@ The validated development build enables region-local guest GPR mapping:
 
 Immediate write-through is a correctness requirement, not merely a conservative setting. Generated code may be left through signal delivery, memory-fault recovery, helper calls, or other exceptional exits that bypass a normal region-end flush. A previous deferred-writeback design correlated with application crashes; the isolated write-through implementation has not reproduced them.
 
+## Read-only SIMD cache
+
+Commit `4f457388` adds a conservative region-local cache for repeatedly read ARM64 SIMD registers:
+
+- Up to five source-only guest vector registers are cached in LoongArch LSX `$vr4`-`$vr8`.
+- Any register that may be written by a data-processing instruction, scalar/vector load, pair load, or structure load in the region is excluded. This includes partial vector destinations.
+- Guest vector writes remain immediately visible in `ThreadState`; there is no deferred SIMD writeback.
+- Each directly dispatched target region reloads its own selected vector cache at entry.
+
+In the device regression sequence, five repeated `FMUL V.4S` instructions reduced source-vector loads from ten to two while preserving the same result. This initial implementation deliberately favors correctness over aggressive cache coverage.
+
 ## CFI-safe native callback closures
 
 ARM64 applications can pass guest callbacks to native host libraries. Berberis uses libffi closures to adapt these callbacks to the LoongArch64 host ABI. The earlier anonymous executable closure mapping could randomly occupy a 256 KiB CFI shadow slot owned by an unrelated CFI-enabled DSO. A host indirect call would then ask that unrelated DSO to validate the closure and could terminate with `SIGILL`.
@@ -58,6 +69,15 @@ AAudio's `AAUDIO_ERROR_ILLEGAL_ARGUMENT` (`-898`) observed during rapid uninstal
 - Waydroid reached `sys.boot_completed=1`; the Android crash buffer was empty after deployment.
 - Three consecutive AAudio mode-5 runs completed about 5,000 callbacks each with no CFI, `SIGILL`, or fatal signal. A concurrent stress mode containing 1,600 stream-open attempts also completed.
 - A cold launch of `com.kurogame.mingchao` remained alive past 60 seconds. The LXC and `system_server` PIDs remained unchanged, and the process had no anonymous `berberis-ffi-closure` executable mapping.
+
+## Verification on 2026-08-17
+
+- Extended linear regions through conditional-branch fallthrough in `dbd1c9c9`; taken branches remain translation-cache side exits.
+- Added the source-only SIMD cache in `4f457388` and independently verified the new LoongArch `VOR.V` encoding. Structure-load destinations, including `LD1R`, have explicit stale-cache regression coverage.
+- Passed `124/124` `LoongArch64RuntimeLibraryTest` tests on the LoongArch64 device.
+- Deployed library SHA-256: `5a83a8ceb7f194f0a9f8f22f80071d4b3f258a7f579482f3ce71f2499c749248`.
+- Waydroid reached `sys.boot_completed=1`; Bilibili completed a cold launch, remained alive, and the Android crash buffer stayed empty.
+- Deployment backup: `/var/lib/waydroid/deploy-backups/20260817-230845-simd-cache-final`.
 
 ## Remaining work
 

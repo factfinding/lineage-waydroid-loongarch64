@@ -11,7 +11,7 @@ This repository is the source entry point for the ongoing LineageOS 23.2 / Andro
 
 The current system boots to `sys.boot_completed=1` on an AOSC OS LoongArch64 host. Native LoongArch64 ART, bionic, WebView, audio, networking and Mesa graphics have been validated. ARM64 application libraries run through the LoongArch64 Berberis Native Bridge; compatibility and translation performance remain active development areas.
 
-The development branch now includes a region-based ARM64-to-LoongArch64 Lite JIT with interpreter fallback. Its current validated register cache keeps selected guest GPRs in LoongArch64 callee-saved registers while writing every update through to `ThreadState`. See the dated [runtime and translation status](docs/RUNTIME_STATUS.md). This work is newer than the `v0.2.2` release.
+The development branch now includes a region-based ARM64-to-LoongArch64 Lite JIT with interpreter fallback. Its current validated register caches keep selected guest GPRs in LoongArch64 callee-saved registers and repeatedly read, source-only SIMD values in LSX registers. Guest state remains write-through to `ThreadState`. See the dated [runtime and translation status](docs/RUNTIME_STATUS.md). This work is newer than the `v0.2.2` release.
 
 ## Source layout
 
