@@ -74,10 +74,11 @@ AAudio's `AAUDIO_ERROR_ILLEGAL_ARGUMENT` (`-898`) observed during rapid uninstal
 
 - Extended linear regions through conditional-branch fallthrough in `dbd1c9c9`; taken branches remain translation-cache side exits.
 - Added the source-only SIMD cache in `4f457388` and independently verified the new LoongArch `VOR.V` encoding. Structure-load destinations, including `LD1R`, have explicit stale-cache regression coverage.
-- Passed `124/124` `LoongArch64RuntimeLibraryTest` tests on the LoongArch64 device.
-- Deployed library SHA-256: `5a83a8ceb7f194f0a9f8f22f80071d4b3f258a7f579482f3ce71f2499c749248`.
+- Lowered ARM64 vector AND/OR/EOR directly to LSX in `54e4923e`, including the previously interpreted 64-bit AND/OR forms. Repeated logical sources now use the region SIMD cache instead of four scalar `ThreadState` loads per instruction.
+- Passed `125/125` `LoongArch64RuntimeLibraryTest` tests on the LoongArch64 device.
+- Deployed library SHA-256: `b429e9be5834bbe8dc5021cbb6593d41af2b22c839d14702bf3ba3bff59f129e`.
 - Waydroid reached `sys.boot_completed=1`; Bilibili completed a cold launch, remained alive, and the Android crash buffer stayed empty.
-- Deployment backup: `/var/lib/waydroid/deploy-backups/20260817-230845-simd-cache-final`.
+- Deployment backup: `/var/lib/waydroid/deploy-backups/20260818-120201-lsx-logical`.
 
 ## Remaining work
 
