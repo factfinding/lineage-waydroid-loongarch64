@@ -1,6 +1,6 @@
 # Runtime and Translation Status
 
-Last updated: 2026-08-17
+Last updated: 2026-08-18
 
 This page tracks development-branch runtime results. It is not a statement about the older `v0.2.2` release unless explicitly noted.
 
@@ -80,10 +80,30 @@ AAudio's `AAUDIO_ERROR_ILLEGAL_ARGUMENT` (`-898`) observed during rapid uninstal
 - Waydroid reached `sys.boot_completed=1`; Bilibili completed a cold launch, remained alive, and the Android crash buffer stayed empty.
 - Deployment backup: `/var/lib/waydroid/deploy-backups/20260818-120201-lsx-logical`.
 
+## Verification on 2026-08-18
+
+- Commit `b9b6b447` routes `DUP V.16B`, `DUP V.2D`, zero/one `MOVI`, and
+  `FABS V.4S` through LSX and the common cache-coherent vector helpers.
+- `DUP V.16B` no longer uses a mask, 64-bit multiply, and two scalar stores;
+  it lowers to an LSX byte broadcast plus the normal vector write-through.
+- The SIMD liveness pass now recognizes `FABS V.4S` as unary instead of
+  treating opcode bits as a phantom `Rm` source. Five repeated FABS operations
+  therefore load their shared guest source once with register mapping enabled,
+  versus five times without mapping.
+- LLVM 21 independently verified the new `VREPLGR2VR.B` and
+  `VREPLGR2VR.D` encodings. Host assembler tests and all `126/126`
+  LoongArch64 runtime tests passed on the device.
+- Deployed library SHA-256:
+  `5aac25f6f7cc0ba546fe871e537f1f8b07d8856cf4cff1c8e84bcd314fa65519`.
+- Waydroid reached `sys.boot_completed=1`; the graphical session and core
+  Android processes remained running, and the crash buffer was empty.
+- Deployment backup:
+  `/var/lib/waydroid/deploy-backups/20260818-121818-lsx-broadcast-fabs`.
+
 ## Remaining work
 
 - Increase Lite JIT instruction and region coverage to reduce interpreter re-entry.
 - Profile region formation, dispatch, helper calls, memory access, and JNI transitions on real applications.
 - Expand syscall, signal, JNI, and Native Bridge correctness coverage.
 - Keep application protection or emulator-detection failures separate from translation correctness bugs.
-- Publish the validated development commits and include them in a coordinated tagged release before treating the cache as released functionality.
+- Include the validated development commits in a coordinated tagged release before treating the cache as released functionality.
