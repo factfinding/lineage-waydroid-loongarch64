@@ -99,6 +99,15 @@ AAudio's `AAUDIO_ERROR_ILLEGAL_ARGUMENT` (`-898`) observed during rapid uninstal
   Android processes remained running, and the crash buffer was empty.
 - Deployment backup:
   `/var/lib/waydroid/deploy-backups/20260818-121818-lsx-broadcast-fabs`.
+- Commit `fdde08fa` replaces scalar lane accesses for ARM64 `UZP1`, `UZP2`,
+  `ZIP1`, `ZIP2`, and `TRN1` 4S forms with cache-aware LSX picks and
+  interleaves. Source/destination alias cases match the interpreter.
+- Five repeated ZIP operations reduce source-vector loads from ten to two with
+  SIMD register mapping enabled. The expanded device suite passes `127/127`.
+- Current deployed library SHA-256:
+  `b7878c4162b72cf9b6ea13e5523e993840181ab7619c138aaeecf49e55232929`.
+- Current deployment backup:
+  `/var/lib/waydroid/deploy-backups/20260818-123045-lsx-permute`.
 
 ## Remaining work
 
