@@ -108,6 +108,16 @@ AAudio's `AAUDIO_ERROR_ILLEGAL_ARGUMENT` (`-898`) observed during rapid uninstal
   `b7878c4162b72cf9b6ea13e5523e993840181ab7619c138aaeecf49e55232929`.
 - Current deployment backup:
   `/var/lib/waydroid/deploy-backups/20260818-123045-lsx-permute`.
+- Commit `41264228` replaces scalar chunk assembly for both ARM64 EXT forms
+  with cache-aware LSX byte shifts. The 64-bit form explicitly concatenates
+  only the low source lanes and clears the destination's upper half.
+- All legal 64- and 128-bit offsets, destination/source aliasing, and repeated
+  source caching pass differential tests. Five repeated EXT operations reduce
+  source-vector loads from ten to two; the full device suite passes `128/128`.
+- Current deployed library SHA-256:
+  `2233be9a7dd0a9575ff2b13772c11176579271f0d3f41a83fc1faeaf25347899`.
+- Current deployment backup:
+  `/var/lib/waydroid/deploy-backups/20260818-125944-lsx-ext`.
 
 ## Remaining work
 
