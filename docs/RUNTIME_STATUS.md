@@ -118,6 +118,16 @@ AAudio's `AAUDIO_ERROR_ILLEGAL_ARGUMENT` (`-898`) observed during rapid uninstal
   `2233be9a7dd0a9575ff2b13772c11176579271f0d3f41a83fc1faeaf25347899`.
 - Current deployment backup:
   `/var/lib/waydroid/deploy-backups/20260818-125944-lsx-ext`.
+- Commit `6c0eafa7` replaces scalar lane extraction for ARM64 `FADDP V.2S`
+  with a cache-aware LSX interleave, split, and vector add sequence. Inactive
+  lanes are zeroed before addition so they cannot raise extra FP exceptions.
+- NaN, signed-zero, destination alias, and repeated-source tests match the
+  interpreter. Five repeated FADDP operations reduce source-vector loads from
+  ten to two; the full device suite passes `129/129`.
+- Current deployed library SHA-256:
+  `c77248a50a5ff5f25275ed4148243b000dec750aaf8a0041eb0ad7cbdd3b5240`.
+- Current deployment backup:
+  `/var/lib/waydroid/deploy-backups/20260818-131325-lsx-faddp`.
 
 ## Remaining work
 
