@@ -29,8 +29,10 @@ The Lite JIT covers a growing set of integer, branch, memory, atomic, floating-p
 
 The validated development build enables region-local guest GPR mapping:
 
-- Up to seven frequently used ARM64 GPRs are cached in LoongArch64 `$s0`-`$s6`.
-- Registers used only once are not cached, limiting code-size growth.
+- Up to seven repeatedly read ARM64 GPRs are cached in LoongArch64 `$s0`-`$s6`.
+- Commit `5f0c728d` obtains exact reads and writes through the real translator
+  decoder, excluding destination-only registers and ranking write-heavy values
+  below source-heavy values.
 - Reads use the cached host register.
 - Every guest-register write is immediately stored to `ThreadState` and then reflected in the cache.
 - `$s8`/`r31` remains the `ThreadState` base. `r21` and `$tp` remain non-allocatable.
@@ -128,6 +130,26 @@ AAudio's `AAUDIO_ERROR_ILLEGAL_ARGUMENT` (`-898`) observed during rapid uninstal
   `c77248a50a5ff5f25275ed4148243b000dec750aaf8a0041eb0ad7cbdd3b5240`.
 - Current deployment backup:
   `/var/lib/waydroid/deploy-backups/20260818-131325-lsx-faddp`.
+
+## Verification on 2026-08-21
+
+- Commit `c83b7649` adds repeatable LoongArch64 JIT microbenchmarks for GPR
+  caching, SIMD caching, conditional fallthrough, and mixed arithmetic.
+- The integration runner executes the full correctness suite, emits JSONL
+  latency/code-size data, collects hardware counters with `perf stat`, and can
+  fail an A/B run automatically when latency or code size regresses by 3%.
+- Commit `5f0c728d` replaces raw ARM64 instruction-field counting with exact
+  GPR read/write collection through the existing translator decoder. Guest
+  writes remain immediately visible in `ThreadState`.
+- Against the `c83b7649` baseline, GPR latency fell 17.08% and generated size
+  fell 16.41%; conditional-fallthrough latency fell 12.54% and size fell
+  12.81%. The other two scenarios also remained within the regression gate.
+- All `145/145` device runtime tests passed. Deployed library SHA-256:
+  `be8140d98ce65302d5aef7712349daea699762555e49dbeb255c95b26f23cc94`.
+- Waydroid reached `sys.boot_completed=1`; `zygote64`, `surfaceflinger`, and
+  `system_server` are running and the Android crash buffer is empty.
+- Deployment backup:
+  `/var/lib/waydroid/deploy-backups/20260821-222249-berberis-source-aware-gpr`.
 
 ## Remaining work
 
