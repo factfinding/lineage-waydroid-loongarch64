@@ -1,6 +1,6 @@
 # Runtime and Translation Status
 
-Last updated: 2026-08-18
+Last updated: 2026-08-23
 
 This page tracks development-branch runtime results. It is not a statement about the older `v0.2.2` release unless explicitly noted.
 
@@ -39,12 +39,13 @@ The validated development build enables region-local guest GPR mapping:
 
 Immediate write-through is a correctness requirement, not merely a conservative setting. Generated code may be left through signal delivery, memory-fault recovery, helper calls, or other exceptional exits that bypass a normal region-end flush. A previous deferred-writeback design correlated with application crashes; the isolated write-through implementation has not reproduced them.
 
-## Read-only SIMD cache
+## Write-through SIMD cache
 
-Commit `4f457388` adds a conservative region-local cache for repeatedly read ARM64 SIMD registers:
+Commit `4f457388` added a conservative region-local cache for repeatedly read ARM64 SIMD registers. Commit `3bce713e` extends it to a narrow audited class of full-width floating-point destinations:
 
-- Up to five source-only guest vector registers are cached in LoongArch LSX `$vr4`-`$vr8`.
-- Any register that may be written by a data-processing instruction, scalar/vector load, pair load, or structure load in the region is excluded. This includes partial vector destinations.
+- Up to five repeatedly read guest vector registers are cached in LoongArch LSX `$vr4`-`$vr8`.
+- Full-width `FMUL`, `FDIV`, `FADD`, `FSUB`, `FMLA`, and `FMLS` destinations may be cached because their audited `StoreV()` lowering writes through before updating the LSX copy.
+- Partial writes, lane writes, structure-load destinations, and unaudited writers remain excluded.
 - Guest vector writes remain immediately visible in `ThreadState`; there is no deferred SIMD writeback.
 - Each directly dispatched target region reloads its own selected vector cache at entry.
 
@@ -150,6 +151,32 @@ AAudio's `AAUDIO_ERROR_ILLEGAL_ARGUMENT` (`-898`) observed during rapid uninstal
   `system_server` are running and the Android crash buffer is empty.
 - Deployment backup:
   `/var/lib/waydroid/deploy-backups/20260821-222249-berberis-source-aware-gpr`.
+
+## Verification on 2026-08-23
+
+- Commit `3bce713e` moves all guest-memory fault recovery exits after the normal
+  region body and removes redundant hot-path branches from structure memory
+  operations. Nearby exits update the guest PC relative to `$s7` with one
+  `ADDI.D` instead of materializing a full address.
+- Added immediate and register post-index lowering for 32-bit `LD1/ST1` lane
+  forms, including the hot Unity `ST1 {Vt.S}[lane], [Xn], #4` pattern.
+- Audited full-width floating-point accumulators can now remain in the
+  write-through SIMD cache. A repeated-FMLA regression reduces vector loads
+  from 15 to three and verifies the final `ThreadState` value.
+- The gear-up threshold is runtime-selectable through
+  `berberis.gear_switch_threshold`; the compiled default remains 1000.
+- All `149/149` device runtime tests pass. The four automated microbenchmarks
+  pass the 3% regression gate; generated size fell by 0.78% to 2.44% against
+  the previous two-tier baseline.
+- A controlled 40-second `com.tencent.jkchess` cold-launch comparison read the
+  requested threshold in each new process. Threshold 1000 reported a 7.237 s
+  activity start, while threshold 128 reported 3.463 s and geared substantially
+  more regions. This is promising but order/cache effects mean it is not yet a
+  definitive gameplay result.
+- Deployed library SHA-256:
+  `e019663468123fc740ed399fbf3a1bdccf51361ee9d0b9eb7318cfa01e93035a`.
+- Deployment backup:
+  `/var/lib/waydroid/deploy-backups/20260823-160628-five-items`.
 
 ## Remaining work
 
