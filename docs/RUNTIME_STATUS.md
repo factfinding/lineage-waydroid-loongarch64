@@ -1,6 +1,6 @@
 # Runtime and Translation Status
 
-Last updated: 2026-08-23
+Last updated: 2026-08-30
 
 This page tracks development-branch runtime results. It is not a statement about the older `v0.2.2` release unless explicitly noted.
 
@@ -11,6 +11,10 @@ This page tracks development-branch runtime results. It is not a statement about
 - Native LoongArch64 ART, bionic, system services, Chromium WebView, audio, networking, and Mesa GPU acceleration have runtime validation.
 - The ABI list prefers `arm64-v8a` for Native Bridge applications while retaining native `loongarch64` and `lp64d` support.
 - ARM64 application libraries are loaded through `libberberis_arm64.so`.
+- Legacy RenderScript calls made by ARM64 applications use the ARM64
+  `librs_jni.so`, `libRSDriver.so`, and `libRSCpuRef.so` stack through
+  Berberis. Native LoongArch64 RenderScript remains disabled because libbcc
+  has no LoongArch64 backend.
 
 ## ARM64 translation pipeline
 
@@ -177,6 +181,36 @@ AAudio's `AAUDIO_ERROR_ILLEGAL_ARGUMENT` (`-898`) observed during rapid uninstal
   `e019663468123fc740ed399fbf3a1bdccf51361ee9d0b9eb7318cfa01e93035a`.
 - Deployment backup:
   `/var/lib/waydroid/deploy-backups/20260823-160628-five-items`.
+
+## Verification on 2026-08-30
+
+- Added an ARM64 Native Bridge variant of `librs_jni.so`. Public NDK bitmap
+  and native-window APIs replace dependencies on host-private framework C++
+  objects at the guest boundary.
+- The framework keeps `config.disable_renderscript=1` for native LoongArch64
+  processes, but lazily loads the guest JNI library when an `arm64-v8a`
+  application runs with `ro.dalvik.vm.native.bridge=libberberis_arm64.so`.
+- Berberis exposes only `librs_jni.so` through the ARM64 guest namespace link;
+  the LoongArch64 host library is not made public to applications.
+- A minimal ARM64 APK completed `RenderScript.create()` and displayed PASS
+  after a container restart with no temporary property override. Its process
+  mapped the guest JNI, driver, and CPU reference libraries.
+- YouTube `21.34.243` loaded the guest RenderScript stack, fully drew its main
+  activity, remained alive for the 90-second observation window, and left the
+  Android crash buffer empty.
+- All `163/163` LoongArch64 Berberis runtime tests passed on the device.
+- Effective overlay SHA-256 values are
+  `4a6973704d95a57bbd323bb06bde77e8b08381e6d4ad656eff962d54b66477ef`
+  for `framework.jar`,
+  `a448293d3148b56c6923b8090717d6b4f537d76ad75b756f739c807a8ab2b218`
+  for the guest `librs_jni.so`, and
+  `e76c0a2851c50314a7ac0779960949e43daf2173290db9f4a7784a8f2ab72c5b`
+  for `libberberis_arm64.so`.
+- Final source-matched deployment backup:
+  `/var/lib/waydroid/deploy-backups/20260830-185315-arm64-renderscript-source-match`.
+- Legacy RenderScript graphics surfaces, FileA3D assets, and font-asset APIs
+  are deliberately unsupported across the Native Bridge boundary. The
+  validated target is the compute/bitmap path used by current applications.
 
 ## Remaining work
 
