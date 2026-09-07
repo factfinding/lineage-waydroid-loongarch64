@@ -85,3 +85,29 @@ The script checks out the tagged Chromium source, pins depot_tools, synchronizes
 The current WSL2 build environment must not exceed `-j8` because larger parallel builds have exhausted memory in practice.
 
 The toolchain, standalone WebView, and image stages were clean-build verified for `v0.2.2`.
+
+## Development-branch RenderScript note
+
+The current development branches build an ARM64 Native Bridge variant of
+`librs_jni.so` as part of the product. No LoongArch64 libbcc build is required:
+
+- `config.disable_renderscript=1` intentionally keeps the unsupported native
+  LoongArch64 runtime out of Zygote processes.
+- The framework initializes RenderScript lazily only for `arm64-v8a`
+  applications when the configured bridge is `libberberis_arm64.so`.
+- Berberis links the ARM64 guest application namespace to the guest
+  `librs_jni.so`; the host library is not exposed as a public application
+  library.
+
+A normal `systemimage` build includes the framework, Berberis and ARM64 guest
+JNI changes. After deployment, verify both the configuration and runtime path:
+
+```bash
+getprop config.disable_renderscript
+getprop ro.dalvik.vm.native.bridge
+grep librs_jni /proc/$(pidof <arm64-package>)/maps
+```
+
+The expected values are `1`, `libberberis_arm64.so`, and a mapping below
+`/system/lib64/arm64/`. See [RUNTIME_STATUS.md](RUNTIME_STATUS.md) for the
+validated application results and unsupported legacy APIs.

@@ -11,7 +11,11 @@
 
 当前系统已经能在 AOSC OS LoongArch64 主机上启动至 `sys.boot_completed=1`。原生 LoongArch64 ART、bionic、WebView、音频、网络和 Mesa 图形栈均经过运行验证。ARM64 应用原生库通过 LoongArch64 Berberis Native Bridge 运行，兼容性和转译性能仍在持续开发。
 
-开发分支现已包含带解释器回退的 ARM64 到 LoongArch64 区域化 Lite JIT。当前验证通过的寄存器缓存会将部分访客 GPR 保存在 LoongArch 被调用者保存寄存器中，并将重复读取、只作为源的 SIMD 值保存在 LSX 寄存器中；访客状态仍立即写穿到 `ThreadState`。详见带日期的[运行与转译状态](docs/RUNTIME_STATUS.md)。这些改动晚于 `v0.2.2` 正式版本。
+开发分支现已包含带解释器回退的 ARM64 到 LoongArch64 区域化 Lite JIT。当前验证通过的寄存器缓存会将部分访客 GPR 保存在 LoongArch 被调用者保存寄存器中，并将经过审计的 SIMD 值保存在 LSX 寄存器中；访客状态仍立即写穿到 `ThreadState`。设备端正确性测试目前为 `163/163` 全部通过。
+
+ARM64 应用也可以通过 Berberis 使用旧版 RenderScript 的计算和位图路径。Framework 会按需加载 ARM64 访客侧 `librs_jni.so`；原生 LoongArch64 RenderScript 仍保持禁用，因为其旧版 libbcc 编译器没有 LoongArch64 后端。最小 ARM64 测试应用与单独安装的 YouTube 21.34.243 均已完成运行验证；本仓库不分发 Google 专有 APK。旧版 RenderScript 的图形 Surface、FileA3D 和字体资源 API 尚未桥接。
+
+测试结果、限制、已部署文件哈希和回滚位置详见带日期的[运行与转译状态](docs/RUNTIME_STATUS.md)。这些开发改动晚于 `v0.2.2` 正式版本。
 
 ## 源码组织
 
@@ -30,6 +34,7 @@ LineageOS 23.2 / Android 16
   + Waydroid 官方 base-patches-36
   + LoongArch64 平台适配
   + LoongArch64 Berberis Native Bridge
+  + ARM64 访客侧 RenderScript 计算/位图运行时
   + Chromium 151 LoongArch64 WebView
 ```
 

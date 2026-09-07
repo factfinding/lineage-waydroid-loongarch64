@@ -6,7 +6,12 @@
 - Enable a write-through guest GPR cache using LoongArch64 `$s0`-`$s6`; `ThreadState` remains authoritative at every guest instruction boundary.
 - Reject deferred register writeback after application testing exposed stale guest state across exceptional generated-code exits.
 - Remove the unsuccessful Instagram-specific trap diagnostics, guest-libc protection exception, host-call recovery experiment, and ARM64 jump-buffer experiment from the active development line.
-- Pass all 113 LoongArch64 runtime-library tests on the target device and complete application-level regression testing without reproducing the earlier Instagram crash.
+- Add progressively broader integer, memory, atomic, floating-point and NEON Lite JIT coverage, cache-aware LSX lowering, longer regions and automated microbenchmarks.
+- Replace anonymous executable libffi closures with a static CFI-safe trampoline pool for ARM64-to-host callbacks.
+- Build and lazily load an ARM64 guest `librs_jni.so` so Native Bridge applications can use legacy RenderScript compute and bitmap operations without requiring a LoongArch64 libbcc backend.
+- Keep native LoongArch64 RenderScript disabled and leave legacy graphics-surface, FileA3D and font-asset APIs explicitly unsupported across the bridge.
+- Validate `RenderScript.create()` with a minimal ARM64 APK and validate YouTube 21.34.243 through main-screen rendering and a 90-second observation window with an empty crash buffer.
+- Pass all 163 LoongArch64 runtime-library tests on the target device.
 
 ## v0.2.2
 

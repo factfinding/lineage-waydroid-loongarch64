@@ -11,7 +11,11 @@ This repository is the source entry point for the ongoing LineageOS 23.2 / Andro
 
 The current system boots to `sys.boot_completed=1` on an AOSC OS LoongArch64 host. Native LoongArch64 ART, bionic, WebView, audio, networking and Mesa graphics have been validated. ARM64 application libraries run through the LoongArch64 Berberis Native Bridge; compatibility and translation performance remain active development areas.
 
-The development branch now includes a region-based ARM64-to-LoongArch64 Lite JIT with interpreter fallback. Its current validated register caches keep selected guest GPRs in LoongArch64 callee-saved registers and repeatedly read, source-only SIMD values in LSX registers. Guest state remains write-through to `ThreadState`. See the dated [runtime and translation status](docs/RUNTIME_STATUS.md). This work is newer than the `v0.2.2` release.
+The development branch now includes a region-based ARM64-to-LoongArch64 Lite JIT with interpreter fallback. Its current validated register caches keep selected guest GPRs in LoongArch64 callee-saved registers and audited SIMD values in LSX registers. Guest state remains write-through to `ThreadState`. The device correctness suite currently passes all 163 tests.
+
+ARM64 applications can also use the legacy RenderScript compute and bitmap path through Berberis. The framework lazily loads the ARM64 guest `librs_jni.so`, while native LoongArch64 RenderScript remains disabled because its old libbcc compiler has no LoongArch64 backend. A minimal ARM64 test application and a separately installed YouTube 21.34.243 have completed runtime validation; proprietary Google APKs are not distributed by this repository. Legacy RenderScript graphics-surface, FileA3D and font-asset APIs are not bridged.
+
+See the dated [runtime and translation status](docs/RUNTIME_STATUS.md) for exact test results, limitations, deployed hashes and rollback information. These development changes are newer than the `v0.2.2` release.
 
 ## Source layout
 
@@ -30,6 +34,7 @@ LineageOS 23.2 / Android 16
   + official Waydroid base-patches-36
   + LoongArch64 platform changes
   + LoongArch64 Berberis Native Bridge
+  + ARM64 guest RenderScript compute/bitmap runtime
   + Chromium 151 LoongArch64 WebView
 ```
 
