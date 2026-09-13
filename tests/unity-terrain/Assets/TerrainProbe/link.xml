@@ -1,0 +1,7 @@
+<linker>
+  <!-- CreatePrimitive(Cube) adds BoxCollider internally. Keep its type in
+       IL2CPP even though this rendering fixture does not use physics. -->
+  <assembly fullname="UnityEngine.PhysicsModule">
+    <type fullname="UnityEngine.BoxCollider" preserve="all" />
+  </assembly>
+</linker>
