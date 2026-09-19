@@ -6,10 +6,19 @@ This page tracks development-branch runtime results. It is not a statement about
 
 ## 2026-09-19 source snapshot and full image rebuild
 
+The paired image build and deployment are complete. Both destination image
+hashes and fifteen effective runtime file hashes match; all eleven previous
+component overrides are now supplied by the images, with an empty writable
+overlay. Android boots to the desktop. Berberis passes 211/211 tests, native
+color/GPU/AAC tests pass 8/8, and H.264/VP9/native AV1 controls each deliver 60/60
+frames. AAC and Instagram compatibility policies pass their probes. The final
+crash buffer is empty, and the host boot ID is unchanged. Backup:
+`/var/lib/waydroid/deploy-backups/20260919-112402-full-images/`.
+
 The current application, JIT, media and Helper changes are committed locally.
-The user has now authorized a full system/vendor rebuild and paired deployment,
-superseding earlier requests to defer image rebuilding. Source revisions and
-build/deployment results are recorded in [FULL_IMAGES_20260919.md](FULL_IMAGES_20260919.md).
+This full system/vendor snapshot incorporates the recent component deployments.
+Source revisions and build/deployment results are recorded in
+[FULL_IMAGES_20260919.md](FULL_IMAGES_20260919.md).
 The automatic host reset remains unresolved; this snapshot is not a host-reset fix.
 
 ## 2026-09-19 FFmpeg per-instance output negotiation fix
