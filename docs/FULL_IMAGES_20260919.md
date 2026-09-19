@@ -1,8 +1,10 @@
 # Full image snapshot, 2026-09-19
 
-The user requested committing the current source, rebuilding both images, and
-deploying them together. This is a development snapshot, not a published release.
-Source commits below are local; no push, tag or release publication was requested.
+This development snapshot was committed, rebuilt and deployed as a matched image
+pair. The same image bytes are published as
+[v0.2.3-lineage-23.2](https://github.com/factfinding/waydroid-loongarch64-builds/releases/tag/v0.2.3-lineage-23.2),
+with coordinated `v0.2.3` source tags and the patch queues in the integration
+repository. Release preparation changes metadata and documentation only.
 
 ## Source snapshot
 

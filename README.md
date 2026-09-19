@@ -4,18 +4,18 @@
 
 This repository is the source entry point for the ongoing LineageOS 23.2 / Android 16 port to Waydroid on LoongArch64.
 
-`v0.2.2` is the first versioned public source snapshot. `projects.tsv` records the exact project commits and source trees used by the snapshot. Compatibility and performance work continues on the development branches.
+`v0.2.3` is the current coordinated source and image snapshot. `projects.tsv` records the exact project commits and source trees used by the snapshot. Compatibility and performance work continues on the development branches.
 
 > [!NOTE]
 > The public toolchain bootstrap, standalone Chromium WebView APK, and clean LineageOS image build have been verified. See the [reproducibility status](docs/REPRODUCIBILITY.md).
 
 The current system boots to `sys.boot_completed=1` on an AOSC OS LoongArch64 host. Native LoongArch64 ART, bionic, WebView, audio, networking and Mesa graphics have been validated. ARM64 application libraries run through the LoongArch64 Berberis Native Bridge; compatibility and translation performance remain active development areas.
 
-The development branch now includes a region-based ARM64-to-LoongArch64 Lite JIT with interpreter fallback. Its current validated register caches keep selected guest GPRs in LoongArch64 callee-saved registers and audited SIMD values in LSX registers. Guest state remains write-through to `ThreadState`. The device correctness suite currently passes all 163 tests.
+The development branch now includes a region-based ARM64-to-LoongArch64 Lite JIT with interpreter fallback. Its current validated register caches keep selected guest GPRs in LoongArch64 callee-saved registers and audited SIMD values in LSX registers. Guest state remains write-through to `ThreadState`. The device correctness suite currently passes all 211 tests.
 
 ARM64 applications can also use the legacy RenderScript compute and bitmap path through Berberis. The framework lazily loads the ARM64 guest `librs_jni.so`, while native LoongArch64 RenderScript remains disabled because its old libbcc compiler has no LoongArch64 backend. A minimal ARM64 test application and a separately installed YouTube 21.34.243 have completed runtime validation; proprietary Google APKs are not distributed by this repository. Legacy RenderScript graphics-surface, FileA3D and font-asset APIs are not bridged.
 
-See the dated [runtime and translation status](docs/RUNTIME_STATUS.md) for exact test results, limitations, deployed hashes and rollback information. These development changes are newer than the `v0.2.2` release.
+See the dated [runtime and translation status](docs/RUNTIME_STATUS.md) for exact test results, limitations, deployed hashes and rollback information. The matching [v0.2.3 images](https://github.com/factfinding/waydroid-loongarch64-builds/releases/tag/v0.2.3-lineage-23.2) include these changes.
 
 ## Source layout
 

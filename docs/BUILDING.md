@@ -9,8 +9,8 @@ The shortest tagged workflow is:
 ```bash
 git clone https://github.com/factfinding/lineage-waydroid-loongarch64.git
 cd lineage-waydroid-loongarch64
-git checkout v0.2.2
-scripts/sync-android.sh /path/to/lineage-waydroid-23.2 v0.2.2
+git checkout v0.2.3
+scripts/sync-android.sh /path/to/lineage-waydroid-23.2 v0.2.3
 ```
 
 The equivalent manual steps are shown below.
@@ -29,14 +29,14 @@ Clone this repository next to, or anywhere outside, the Android source tree:
 ```bash
 git clone https://github.com/factfinding/lineage-waydroid-loongarch64.git
 cd lineage-waydroid-loongarch64
-git checkout v0.2.2
+git checkout v0.2.3
 cd ../lineage-waydroid-23.2
 ```
 
 ### Install manifests and sync
 
 ```bash
-../lineage-waydroid-loongarch64/scripts/install-local-manifests.sh "$PWD" v0.2.2
+../lineage-waydroid-loongarch64/scripts/install-local-manifests.sh "$PWD" v0.2.3
 repo sync -c -j8
 ```
 
@@ -61,7 +61,7 @@ Build and install the pinned LLVM 21 and Rust 1.88 toolchains before the product
 
 ```bash
 ../lineage-waydroid-loongarch64/scripts/sync-toolchains.sh \
-  /path/to/toolchain-workspace v0.2.2
+  /path/to/toolchain-workspace v0.2.3
 ../lineage-waydroid-loongarch64/scripts/build-toolchains.sh \
   /path/to/toolchain-workspace "$PWD"
 ```
@@ -84,7 +84,7 @@ The script checks out the tagged Chromium source, pins depot_tools, synchronizes
 
 The current WSL2 build environment must not exceed `-j8` because larger parallel builds have exhausted memory in practice.
 
-The toolchain, standalone WebView, and image stages were clean-build verified for `v0.2.2`.
+The toolchain, standalone WebView, and image stages were clean-build verified for `v0.2.2`. The `v0.2.3` image pair was incrementally rebuilt and device-validated; a new clean bootstrap was not repeated.
 
 ## Development-branch RenderScript note
 

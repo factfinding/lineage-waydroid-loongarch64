@@ -4,18 +4,18 @@
 
 本仓库是 LineageOS 23.2 / Android 16 移植到 LoongArch64 Waydroid 的源码入口。
 
-`v0.2.2` 是首个带版本标签的公开源码快照。`projects.tsv` 记录了该快照使用的各项目精确提交及源码树；兼容性与性能工作会继续在开发分支中推进。
+`v0.2.3` 是当前对应源码与镜像的版本快照。`projects.tsv` 记录了该快照使用的各项目精确提交及源码树；兼容性与性能工作会继续在开发分支中推进。
 
 > [!NOTE]
 > 工具链公开引导流程、独立 Chromium WebView APK 和 LineageOS 镜像的干净构建均已验证，详见[可复现性状态](docs/REPRODUCIBILITY.md)。
 
 当前系统已经能在 AOSC OS LoongArch64 主机上启动至 `sys.boot_completed=1`。原生 LoongArch64 ART、bionic、WebView、音频、网络和 Mesa 图形栈均经过运行验证。ARM64 应用原生库通过 LoongArch64 Berberis Native Bridge 运行，兼容性和转译性能仍在持续开发。
 
-开发分支现已包含带解释器回退的 ARM64 到 LoongArch64 区域化 Lite JIT。当前验证通过的寄存器缓存会将部分访客 GPR 保存在 LoongArch 被调用者保存寄存器中，并将经过审计的 SIMD 值保存在 LSX 寄存器中；访客状态仍立即写穿到 `ThreadState`。设备端正确性测试目前为 `163/163` 全部通过。
+开发分支现已包含带解释器回退的 ARM64 到 LoongArch64 区域化 Lite JIT。当前验证通过的寄存器缓存会将部分访客 GPR 保存在 LoongArch 被调用者保存寄存器中，并将经过审计的 SIMD 值保存在 LSX 寄存器中；访客状态仍立即写穿到 `ThreadState`。设备端正确性测试目前为 `211/211` 全部通过。
 
 ARM64 应用也可以通过 Berberis 使用旧版 RenderScript 的计算和位图路径。Framework 会按需加载 ARM64 访客侧 `librs_jni.so`；原生 LoongArch64 RenderScript 仍保持禁用，因为其旧版 libbcc 编译器没有 LoongArch64 后端。最小 ARM64 测试应用与单独安装的 YouTube 21.34.243 均已完成运行验证；本仓库不分发 Google 专有 APK。旧版 RenderScript 的图形 Surface、FileA3D 和字体资源 API 尚未桥接。
 
-测试结果、限制、已部署文件哈希和回滚位置详见带日期的[运行与转译状态](docs/RUNTIME_STATUS.md)。这些开发改动晚于 `v0.2.2` 正式版本。
+测试结果、限制、已部署文件哈希和回滚位置详见带日期的[运行与转译状态](docs/RUNTIME_STATUS.md)。这些改动已纳入配套的 [v0.2.3 镜像](https://github.com/factfinding/waydroid-loongarch64-builds/releases/tag/v0.2.3-lineage-23.2)。
 
 ## 源码组织
 

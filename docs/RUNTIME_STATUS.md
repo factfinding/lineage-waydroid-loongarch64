@@ -15,7 +15,8 @@ frames. AAC and Instagram compatibility policies pass their probes. The final
 crash buffer is empty, and the host boot ID is unchanged. Backup:
 `/var/lib/waydroid/deploy-backups/20260919-112402-full-images/`.
 
-The current application, JIT, media and Helper changes are committed locally.
+The current application, JIT, media and Helper changes are published on GitHub;
+the coordinated Android source and image snapshot is `v0.2.3`.
 This full system/vendor snapshot incorporates the recent component deployments.
 Source revisions and build/deployment results are recorded in
 [FULL_IMAGES_20260919.md](FULL_IMAGES_20260919.md).
