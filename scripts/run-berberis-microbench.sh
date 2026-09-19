@@ -137,7 +137,7 @@ ssh "${root_host}" \
     "lxc-attach -P /var/lib/waydroid/lxc -n waydroid -- /data/local/tmp/berberis-la64-microbench --benchmark all --iterations ${iterations}" \
     | tee "${output_dir}/benchmarks.jsonl"
 
-benchmarks=(gpr_cached simd_cached conditional_fallthrough mixed small_immediates immediate_memory condition_select flag_conditionals stack_read stack_writeback logical_cached cache_write_first cache_early_exit integer_w simd_shl32 simd_ushr32 simd_cmtst32 simd_fmax4s simd_bic simd_bsl8 simd_umovs)
+benchmarks=(gpr_cached simd_cached conditional_fallthrough mixed small_immediates immediate_memory condition_select flag_conditionals stack_read stack_writeback logical_cached cache_write_first cache_early_exit integer_w simd_shl32 simd_ushr32 simd_cmtst32 simd_fmax4s simd_bic simd_bsl8 simd_umovs sp_region_chain sp_region_chain_unmapped)
 events="cycles:u,instructions:u,branches:u,branch-misses:u"
 for benchmark in "${benchmarks[@]}"; do
     echo "Collecting perf stat for ${benchmark}..."

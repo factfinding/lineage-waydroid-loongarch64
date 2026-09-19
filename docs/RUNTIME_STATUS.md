@@ -1,8 +1,572 @@
 # Runtime and Translation Status
 
-Last updated: 2026-09-13
+Last updated: 2026-09-19
 
 This page tracks development-branch runtime results. It is not a statement about the older `v0.2.2` release unless explicitly noted.
+
+## 2026-09-19 source snapshot and full image rebuild
+
+The current application, JIT, media and Helper changes are committed locally.
+The user has now authorized a full system/vendor rebuild and paired deployment,
+superseding earlier requests to defer image rebuilding. Source revisions and
+build/deployment results are recorded in [FULL_IMAGES_20260919.md](FULL_IMAGES_20260919.md).
+The automatic host reset remains unresolved; this snapshot is not a host-reset fix.
+
+## 2026-09-19 FFmpeg per-instance output negotiation fix
+
+The temporary global YUV workaround below is superseded by a component fix.
+FFmpeg now converts to the pixel format negotiated for each codec instance;
+`debug.ffmpeg-codec2.pixel_format` is used only for opaque Surface output.
+Explicit YUV420 requests allocate planar YV12 and pass separate Y/U/V strides
+to swscale. RGBA, RGBX and BGRA use the matching packed FFmpeg layouts; BGRA
+starts at logical B. Unsupported byte-buffer RGB565/P010 requests fail during
+configure instead of silently retaining the old format and failing on frames.
+Hardware download respects explicit formats in source, but VAAPI is not
+runtime-validated on this device.
+
+The RGB control exposed additional framework defects. Gralloc's RGBA/BGRA
+layouts omitted alpha and BGRA named the wrong root plane. The MediaImage
+converter lacked a complete packed RGBA copy layout and could not wrap BGRA
+from its physical first byte. Finally, CCodecBuffers applied a YUV-only plane
+offset calculation to RGB, shifting BGRA data by two bytes. These are fixed
+alongside format negotiation. RGBX opaque Surface output remains supported.
+
+Validation on the 4 KiB LoongArch host:
+
+- Component builds completed with `-j8`, without rebuilding full images.
+- Native `ColorLayoutTest.*` passes, covering RGBA/BGRA channel and alpha
+  values, wrapping, forced copying, and final client buffer range.
+- Concurrent YUV420-planar and RGBAFlexible decoders each emit 12/12 correct
+  red frames and EOS under both global YUV_420 and RGBX_8888 preferences.
+- Flexible YUV420 emits 12/12 correct frames; RGB565 and P010 configure are
+  rejected as expected.
+- Under RGBX_8888, H.264 byte-buffer, H.264 Surface and VP9 Surface controls
+  each emit 60/60 frames and EOS. Surface controls check delivery/timestamps,
+  not screen pixels. All probes run in native ART without ARM64 translation.
+
+Five component files were installed in writable overlays; full images were
+not rebuilt. Original effective files and pre-existing overlay state are in
+`/var/lib/waydroid/deploy-backups/20260919-codec-format-negotiation/`.
+Restore the five saved relative paths to their matching system/vendor overlay
+locations with the container stopped to roll back; then restart the session.
+Keep RGBX_8888 as the product default. Game data and the deployed FMAX JIT fix
+are preserved. The separate software-codec APEX was not replaced; these
+runtime results cover the FFmpeg vendor service and system client libraries.
+
+Deployed SHA-256:
+
+| Component | SHA-256 |
+| --- | --- |
+| system/lib64/libsfplugin_ccodec.so | `d28c09983e423185fd51a8cca5f6d0ae5c727b3b5192e61a773fe2c476a8f0f5` |
+| system/lib64/libcodec2_vndk.so | `79be97a543169dcfae2e1254db89eab475adf88c8befe474617c943391a5a188` |
+| system/lib64/libsfplugin_ccodec_utils.so | `630971a1ae041338f2beb887804f45dc2660cb9184ae3e7674148eecdbcdd7f7` |
+| vendor/lib64/libcodec2_vndk.so | `eb9e37c9ff448a73e9ff68c5ea174e801451a03cea993727e9a632f035a03c55` |
+| vendor/bin/hw/android.hardware.media.c2-ffmpeg-service | `a4bbf81c1d9fb3482b7634c0dcb5af8756e9b0d117a0b384478a4d552bba79b2` |
+
+After restarting Waydroid, `sys.boot_completed=1`, all five effective hashes,
+RGBX_8888, and the existing Berberis hash/mode were verified. Concurrent YUV
+and RGBA pixel controls passed again. Honor of Kings PID 1529 created its
+1280x720 H.264 byte-buffer decoder at 09:42:53; conversion remained
+`yuv420p => yuv420p` despite RGBX being the global default. Successive screenshots
+show its background video advancing while startup loading reached 96.5%.
+The previous format-rejection/Released-state loop did not recur during this
+capture. The crash buffer contains a separate Launcher3 taskbar null reference
+at 09:40:48; no game crash was observed. After the Start Game control, the
+game reached its lobby by 09:45, showing the optional non-Wi-Fi resource
+download prompt. That preference was left for the user. Match completion
+remains untested.
+
+Evidence: `logs/media-format-negotiation-20260919/`. Reusable probes and
+commands: `tests/media-codec/README.md`.
+
+## 2026-09-19 Honor of Kings FFmpeg RGBX/YUV diagnosis (temporary setting)
+
+The Start Game screen's codec error loop is traced to the product-wide
+`debug.ffmpeg-codec2.pixel_format=RGBX_8888` setting. The game's libPixVideo
+requests YUV420 byte-buffer output from native `c2.ffmpeg.h264.decoder`;
+the actual RGB layout is rejected by GraphicView2MediaImageConverter with
+`-22`. MediaCodec subsequently reports UNKNOWN_ERROR and enters Released
+state, while the application continues dequeuing buffers. This is distinct
+from the champion-selection FMAX fallback bug below.
+
+A public CodecProbe running entirely in native LoongArch ART reproduces the
+same converter error and Released-state exception. Temporarily changing the
+property to `YUV_420` gives 60/60 output frames with EOS for H.264 byte-buffer,
+H.264 Surface, and VP9 Surface controls. Restarting the game under YUV restores
+its background video and eliminates the observed converter/error loop. The
+sampled NDK codec thread drops from about 95% to 3% of one CPU; this is not a
+controlled whole-game benchmark. A diagnostic Start Game tap at 09:11:24 then
+advances through login to the S44 initial-rank page. Match loading/completion
+and the earlier champion-selection scene remain untested in this run.
+
+At this diagnostic stage the device used **temporary `YUV_420`**; source and
+image defaults remained RGBX_8888. The per-instance fix above supersedes that
+workaround and restores the product default. Original evidence:
+`logs/honor-of-kings-20260919/codec-trace/`.
+
+## 2026-09-19 Honor of Kings NaN fallback progress fix
+
+Champion selection froze at 00:22 while a Unity job worker used one CPU and
+UnityMain waited on a futex. A 1000-sample capture found the worker unchanged
+at `libunity.so + 0x14487b4`: word `0x1e214881`, `fmax s1, s4, s1`, with a
+quiet NaN in s4. The earlier MediaCodec log flood was absent during this stall.
+
+The scalar min/max NaN fallback returned to the dispatcher at the same guest
+PC without interpreting the instruction. The dispatcher then re-entered the
+same cached translation. The candidate enters the interpreter directly when
+dispatch is enabled; isolated non-dispatch translations retain their existing
+fallback contract. Ordinary finite arithmetic and cache write-through rules
+are unchanged.
+
+The new dispatch-progress test covers nine instruction forms and three NaN
+placements. It fails on the old translator and passes after the fix. Component
+builds and **211/211** device runtime tests pass on the 4 KiB kernel. Candidate
+Berberis SHA-256:
+`f4645ccd9a8ea4083761c38f656343e11c519fc6ed03d858a3a098c95b7911a6`.
+Evidence: `logs/honor-of-kings-20260919/deep-stall/`.
+
+The user authorized deployment after confirming the game was still frozen.
+The shared library was installed in the system overlay and Waydroid restarted.
+`sys.boot_completed=1`, the effective Android library hash, JIT-enabled mode,
+and 4096-byte host pages were verified. The previous `dc93c133...` library is
+backed up at
+`/var/lib/waydroid/deploy-backups/20260919-sgame-fmax-progress-084900/`.
+No full images were rebuilt and game data was preserved. Actual recovery in
+the champion-selection scene and the exact synchronization dependency between
+UnityMain and the worker still require verification.
+
+## 2026-09-18 Hearthstone TACT child-process follow-up
+
+After restoring the 4 KiB kernel, the main process reached the updater but
+reported repair-required error 11. Game logs identify `Failed to send TACT
+initialization request`; Android exit-info records three SIGABRT exits for
+`com.blizzard.wtcg.hearthstone:tact_service`. A debugger reproduction confirms
+that native libartbase read/mmap imports again point into ARM64 libunisec,
+with the host PC at the guest read callback and the FD at protected classes.dex.
+
+The initial hook repair's exact main-process name check missed this child
+process. The compatibility gate now explicitly includes this audited TACT
+process as well. It does not enable arbitrary applications or subprocesses.
+Both component builds passed and **210/210** runtime tests passed on the
+current 4 KiB device. This follow-up does not change the typed callback
+implementation or the ELF alignment repair.
+
+- Deployed Berberis SHA-256: `dc93c13376fc6caa901a2be5519e9877e223581288969b7729f0f2148d988d80`.
+- Backup: `/var/lib/waydroid/deploy-backups/20260918-hearthstone-tact-hooks-v2`.
+- Waydroid restart completed; effective hash and 4096-byte page size verified.
+- Evidence: `logs/hearthstone-20260918/error-followup/`.
+- No full images were rebuilt and no game data was manually cleared.
+
+After deployment, the TACT child remains alive and publishes its Binder
+service. Logs confirm successful TACT initialization; the DBF/string phase
+completes and the 4.72 GB content phase downloads at approximately 17–19 MB/s.
+The saved log advances beyond 344 MB downloaded with an empty Android crash
+buffer, and the screen shows "正在布置旅店……" instead of error 11.
+The game is left downloading; full download, login and matches remain untested.
+
+## 2026-09-18 Hearthstone startup repair
+
+Hearthstone 36.6.251952 (25195200), package `com.blizzard.wtcg.hearthstone`,
+exposed two independent compatibility defects during startup:
+
+1. Its ARM64 protection library replaces native `libartbase.so` read/mmap
+   imports with ARM64 callbacks. Native ART previously jumped directly into
+   guest code. Berberis now registers the native originals before guest JNI
+   initialization and wraps guest replacements on JNI return using the
+   existing CFI-safe static trampoline pool. The typed callbacks preserve the
+   protection library's DEX decryption and calls to the originals. This path
+   is restricted to this package and the audited synchronous initialization
+   hooks; it is not a general concurrent GOT-write interception mechanism.
+2. The protected `libunity.so` tail segment declares 16 KiB alignment, but its
+   virtual and file offsets agree only modulo 4 KiB (`p_vaddr=0x1c32000`,
+   `p_offset=0x1acc000`). On the 16 KiB host the ordinary mapping places zeros
+   at the constructor address instead of the actual code. Bionic now checks
+   actual congruence and selects its existing 4 KiB compatibility copying
+   loader. This does not relax the 4 KiB congruence requirement.
+
+Component builds passed. The Berberis device suite passed **210/210**, including
+six new typed-hook tests. An independent native ELF mapping probe reproduces
+zero bytes with the old linker and the correct magic with the candidate;
+normal 16 KiB and declared 4 KiB layouts pass with both. See
+[`tests/linker-segment-alignment`](../tests/linker-segment-alignment/README.md).
+
+Only Berberis and the ARM64 guest linker overlays were deployed. The native
+linker candidate was used temporarily for the regression probe; the native
+runtime APEX was not replaced. No full images were rebuilt and no app data
+was cleared. Effective hashes were verified after Android boot completed:
+
+- Berberis: `edc6ed84910ed4bc13a6084bedae9b0c96f9174c887b037eaeb84dd379dd71a5`.
+- ARM64 linker: `190379f64df40d08b20927a07d2ba23b0c5c9c376669fef370a45b43bed15913`.
+- Backups: `/var/lib/waydroid/deploy-backups/20260918-hearthstone-art-hooks-v1`
+  and `/var/lib/waydroid/deploy-backups/20260918-hearthstone-linker-alignment`.
+- Local evidence: `logs/hearthstone-20260918/REPORT.md` and `fix/` build,
+  regression, deployment, logcat and screenshot records.
+
+An ordinary launch (no debugger) passes protected DEX, Unity 6000.3.11f1 and
+IL2CPP initialization and reaches the game's first-use privacy/license
+agreement screen. The same process stays alive beyond two minutes with an
+empty Android crash buffer and unchanged host boot ID. Agreement acceptance
+is left to the user; login, resource downloads and matches are not validated.
+JIT remains enabled and the Instagram native decoder policy remains true.
+
+A follow-up on the user's restored 4 KiB kernel isolated an input issue:
+touch-source drag/tap worked, but mouse-source drag/tap did not; wheel scroll
+still worked. Adding `com.blizzard.wtcg.hearthstone` to the device's existing
+`persist.waydroid.fake_touch` list (preserving `com.kurogame.mingchao`) and
+restarting the app made the same injected mouse drag and privacy-link click
+work. This uses Waydroid's existing per-app ViewRootImpl source conversion;
+no JIT/framework rebuild is involved. The app was returned to the agreement
+screen without accepting it. Evidence: `logs/hearthstone-20260918/input/`.
+
+At the user's request, `com.tencent.tmgp.sgame` (Honor of Kings) was subsequently
+added to the same persistent device list, preserving both existing entries.
+Property readback passed. Existing Honor of Kings windows require a full app
+reopen; its background process was left running while Hearthstone was foreground.
+Honor of Kings input behavior is not yet validated. Evidence:
+`logs/honor-of-kings-input-20260918/`.
+
+To roll back, stop Waydroid, restore each saved `.overlay` file to its matching
+`overlay_rw/system/system/` destination (or remove that single overlay file if
+its backup has an `.overlay-absent` marker), then start Waydroid and the desktop
+user's graphical session. Do not replace full images or remove app data.
+
+## 2026-09-18 NetEase Cloud Music executable-segment tracking repair
+
+NetEase Cloud Music 9.5.61 (9005061) rewrites the in-memory ELF header of
+`libnesec.so`. When another library (`libpoison.so`) loads, Berberis previously
+reparsed every ELF header and treated the rejected header as an unloaded
+object. It cleared guest executable bits while libnesec was still present in
+`link_map`. App-filtered tracing records both erroneous clears immediately
+before `HandleNoExec` at libnesec+0x68194, matching the original crash core.
+The host mapping being read-only is normal for translated code and is not
+itself evidence of missing guest execute permission.
+
+The linker synchronizer now caches executable segments by link_map node and
+load bias for each live object, clearing them only when that object leaves
+the list. It preserves explicit guest permission revocation and registers
+replacement ranges after clearing removed objects. This changes loader
+bookkeeping, not ARM64 instruction decoding or JIT optimizations.
+
+`m -j8 libberberis_arm64 berberis_runtime_arm64_loongarch64_tests` passed;
+all **204/204** device runtime tests pass, including six new cases for altered
+headers, explicit revocation, actual unload, reload and address reuse.
+Only the library overlay was deployed; no full images were rebuilt and no
+app data was cleared.
+
+- Library SHA-256: `a9805966db7d8f9d7754d5fca29a66f94d7405fdd6225e3a0e96e2cd37fa1528`.
+- Backup: `/var/lib/waydroid/deploy-backups/20260918-netease-link-map`.
+- Evidence: local `logs/netease-music-20260918/`, including trace, crash analysis,
+  build and device test logs. Private app libraries/core files are not published.
+
+After the Waydroid restart, Android reached boot-completed and the effective
+library hash matched. An ordinary app launch (no debugger or tracing) loaded
+libpoison successfully and reached the first-use terms/privacy dialog. The
+same process remained foreground/alive for 127 seconds with an empty crash
+buffer and unchanged host boot ID. The notification permission prompt was
+declined during validation. Terms acceptance is left to the user, so home,
+login and music playback are not yet validated. Berberis tracing is disabled;
+JIT remains enabled and the Instagram decoder policy remains true.
+
+The original no-exec fault also exposed missing LoongArch architecture
+selection in unwindstack, which aborted while ART tried to report the fault.
+That separate diagnostic limitation remains outside this repair.
+
+## 2026-09-17 Instagram process-local decoder policy
+
+An opt-in framework hook changes `Build.MODEL` to `Waydroid Emulator` only in
+`com.instagram.android` processes using the Berberis native bridge, before
+application initialization. The LoongArch64 product now sets
+`debug.waydroid.instagram_native_av1=true` in vendor/build.prop at every boot.
+The property name is retained from the original AV1 investigation. Set false
+and restart the app to temporarily undo the policy; Android restart restores
+the product default. To disable it permanently, change the product property
+or the device's vendor/build.prop overlay. The framework fallback is still
+false on other products. Global
+device properties and other packages are unchanged. No app data was cleared.
+
+Instagram 442.0.0.46.79 contains an emulator branch preferring platform dav1d,
+but **the observed application playback after the override selected native
+`c2.ffmpeg.vp9.decoder`, not platform AV1**. Multiple clips played, clip changes
+and background/foreground return worked, and the user confirmed substantially
+smoother video. This verifies a useful native VP9 route; it does not establish
+Instagram platform-AV1 playback or isolate why stream selection changed.
+Model substitution can also affect other app policies; validation is limited
+to this Instagram version. The user requested the validated policy as the default.
+
+Before the switch, two bundled ARM64 dav1d threads used 91.84% and 90.19% of one
+logical CPU; Instagram totaled 235.5%. A stable 20-second VP9 sample afterward
+used 48.78% in Instagram, 16.35% in the FFmpeg service and 0.25% in swcodec,
+with no guest dav1d decoding load. Startup/clip loading had higher transient
+costs. These are different clips/codecs, not a matched-content speedup or a
+measurement of displayed frame rate.
+
+`m -j8 framework-minus-apex` passed. `InstagramCompatProbe` passed fresh-process
+false/true/false tests, checking package exclusion, an unchanged global model,
+and no model leakage into a new process. Android reached boot-completed, the
+crash buffer stayed empty, and the host boot ID did not change. Only the
+framework jar was deployed, not a new full image pair:
+
+- Framework SHA-256: `7da9b0729c0282c814f83039961af8cb64b5d78ac9b753b2ef3b6668b5acddc8`.
+- Backup: `/var/lib/waydroid/deploy-backups/20260917-instagram-native-av1`.
+- Original framework overlay was absent; full rollback stops the container,
+  removes only the newly introduced framework jar overlay, and restarts the
+  container/user session. The backup also contains the original deployed jar.
+- Local evidence: `logs/instagram-native-av1-20260917/switch/`.
+- Probe and usage: `tests/media-codec/InstagramCompatProbe.java` and README.
+
+The subsequent permanent-default deployment changed only vendor/build.prop,
+preserving the existing AAC/FFmpeg settings. Its backup is
+`/var/lib/waydroid/deploy-backups/20260917-instagram-native-default`.
+After a full Waydroid restart, the property automatically read true (no setprop
+after restart), `InstagramCompatProbe true` passed, boot-completed was 1, the
+global model remained `2509FPN0BC`, and Instagram again created native VP9 and
+AAC decoders with an empty crash buffer. Source default:
+`device/waydroid/waydroid/waydroid_loongarch64/lineage_waydroid_loongarch64.mk`.
+The full image rebuild was cancelled at the user's request; no new image pair
+was completed or deployed for the permanent-default change. Product source and
+the device overlay retain the setting. Evidence is tracked separately in
+`logs/instagram-native-av1-20260917/permanent/`.
+
+## 2026-09-16/17 AV1 fallback, planar YUV and ARM64 SIMD decoding repair
+
+The FFmpeg Codec2 store no longer publishes the built-in hardware-only AV1
+implementation when acceleration is disabled, host AV1 capability is missing,
+or its hardware context cannot be created. The framework now recognizes
+`minigbm_` gralloc variants, exposing native Android software video decoders.
+The LoongArch swcodec sandbox includes the common crash-reporting policy and
+Mesa affinity calls; the newly exposed dav1d path otherwise died on `geteuid`
+and affinity syscalls.
+
+The original public MediaCodec reproduction accepted 60 AV1 input frames and
+emitted zero. Native `c2.android.av1-dav1d.decoder` now emits all 60 frames in
+both byte-buffer and Surface tests. H.264 and VP9 Surface regressions each
+also deliver all 60 frames. FFmpeg byte-buffer RGBX/YUV conversion remains a
+separate known limitation; these changes do not repair that mode.
+
+Instagram chooses its bundled ARM64 dav1d on the tested software fallback path.
+That exposed a native gralloc/EGL problem: unaligned planar YUV strides could
+not be imported, and CPU mapping used a one-row extent for a two-dimensional
+R8 backing allocation. gbm_mesa now aligns planes for queried pre-Navi amdgpu
+families, following the native amdgpu backend, and maps the same 4096-wide
+backing layout used by allocation/import. The alignment adjustment leaves
+other GPU families unchanged; other hardware has not been runtime-validated.
+
+The new `minigbm_yuv_import_tests` reproduce the issue without ARM64 translation.
+All **6/6** tests pass after repair, including CPU pixel readback, EGL import,
+external-texture sampling and exact red output on flexible YUV and YV12 widths
+720, 736, 768 and 1024. The original gralloc failed four import cases and the
+aligned control's color check. Tests require a device graphics stack and are
+not added to generic host presubmit.
+
+Independent ARM64 decoder tests also exposed incorrect Berberis INS (element)
+decoding. Its width test checked imm5 bit 2/3 without first excluding
+smaller element widths. For example, `0x6e051cc0` (`mov v0.b[2],v6.b[3]`) was
+translated as a 32-bit copy, overwriting adjacent bytes. The decoder now uses
+the lowest set bit, supports all four widths and preserves untouched lanes.
+A second overly broad match treated FMLA/FMLS 2D as 4S. This corrupted the
+floating-point forward transform used to create checkasm coefficients; the
+remaining inverse-transform failures were downstream of those incorrect inputs.
+The 4S lowering and its cache audit now require bit 22 to be zero, leaving 2D
+in the interpreter. Existing single-precision JIT optimizations and the
+independent fork fix remain enabled.
+
+An ARM64-only APK built from public dav1d sources reproduces the problem without
+Instagram. Interpret-only matched reference pixels; old JIT failed 17/1176
+checkasm cases. The corrected single-instruction scan passed 4,179 translated
+opcodes with twelve random register states each. The temporary generated opcode
+scan remains in local evidence, while two durable tests cover 1,920 combinations
+of width, lane, alias and register mapping, plus reserved encodings. An additional regression checks that 2D FMLA/FMLS cannot enter the 4S lowering.
+The INS/FMLA build passed **197/197**, and unmodified upstream dav1d ARM64
+checkasm passed **1176/1176** with JIT enabled. Both scalar and NEON decoding
+match reference pixels for 64x64 and three-frame 720x1280 samples; four-thread
+720p and a cached 1176x646 Instagram stream also match. The public diagnostic
+APK is under `tests/media-codec/dav1d/`; `trim_dsp=false` retains the C fallback.
+
+The bundled Instagram decoder still produced corrupt raw YUV in an isolated
+local diagnostic, while interpret-only matched the same reference frames.
+A further opcode scan found `0x4e2440a6` (ADDHN2) incorrectly entering TBL:
+the TBL mask omitted fixed bit 21. Requiring that bit to be zero preserves all
+four TBL lengths and sends SADDL2/SSUBL2/ADDHN2/SUBHN2 to their correct interpreter
+fallback. The new regression covers these neighbors, aliases and both cache
+modes; the existing TBL test now covers all four table lengths with an independent
+byte oracle. A temporary scan passed another **3,585** translated integer SIMD
+opcodes with 32 random register states each and was removed from production tests.
+The final durable Berberis suite passes **198/198**. After deployment, the exact
+bundled decoder matches all three reference frame hashes with normal JIT enabled.
+Private application libraries/media are confined to local diagnostic evidence.
+The image corruption disappeared, but playback still stalled on xHE-AAC audio.
+The product's global FFmpeg rank of zero selected an incomplete USAC decoder:
+five stereo cache samples each consumed 106 packets with zero PCM output.
+The audio rank is now 272 (native audio rank is 8), and the FFmpeg interface
+enumerates supported AAC profiles without advertising xHE-AAC. Mono xHE-AAC
+alone did not reproduce this limitation.
+
+The native AAC alternative then exposed a separate integer-sanitizer abort in
+`SpatialDecApplyPhase`: conjugating a sine coefficient of `INT_MIN` overflowed.
+The two conjugated hybrid-band paths now saturate negative unity to the largest
+positive Q31 value. Sanitizers remain enabled. `aac_spatial_phase_test` passes
+on x86_64 and LoongArch64 across 64 phases, two channels and four bands.
+All five stereo xHE-AAC samples and one mono sample now produce 106/106 PCM
+buffers with EOS; ordinary AAC-LC passes through both platform and FFmpeg
+decoders (88 packets, 87 PCM buffers after priming). The native AV1 Surface
+regression still produces 60/60 frames. `tests/media-codec/AudioCodecProbe.java`
+checks profile declaration, default selection and optional local PCM decoding.
+
+After the final component deployment, Instagram Reels screenshots show
+continuous motion and the player completes/repeats a 33-second clip. The
+application AudioTrack is started, unmuted, stereo 44.1 kHz, on the output device.
+The post-restart crash buffer is empty. Earlier clip initialization also emitted
+an invalid 1x1 native-window warning; this observation remains in the local
+report and is not treated as proof of another corrected graphics defect.
+
+The framework library, FFmpeg service, swcodec APEX, gralloc library and
+Berberis are installed as overlays. Backup and rollback state are under
+`/var/lib/waydroid/deploy-backups/20260916-instagram-av1-fix`.
+The subsequent AAC service/APEX and vendor-property overlay backup is
+`/var/lib/waydroid/deploy-backups/20260917-aac-profile-phase`.
+The rebuilt system/vendor images have not replaced the deployed image pair.
+Application data and the independent Berberis fork fix are preserved. Builds
+use `-j8`; source changes remain uncommitted. Detailed tests, component hashes,
+application observations and rollback instructions are recorded locally in
+`logs/instagram-av1-fix-20260916/REPORT.md`.
+
+## 2026-09-16 Instagram guest-fork recovery
+
+Instagram's `BloksDeviceGpuM` child was stranded in
+`TranslationCache::AddAndLockForTranslation`. After the main process exited,
+the child retained its Binder descriptor; ActivityManager kept the old process
+in its dying state and cancelled subsequent launches with `refused to die`.
+Killing only the diagnosed orphan immediately delivered the old process's
+Binder death notification and restored startup.
+
+GDB then confirmed the application uses `CloneGuestThread`'s non-CLONE_VM
+syscall path, bypassing libc fork callbacks. That path now locks the translation
+cache across clone, removes unfinished translation/wrapping/invalidation
+records in the child, and preserves the parent's records and completed code.
+The bionic path uses its null-entry clone wrapper so host PID/TID caches are
+updated. The non-bionic LoongArch syscall fallback also uses the correct
+child_tid-before-TLS argument order.
+
+Four new device tests cover inherited lock contention, unfinished transactions,
+host identity/guest TID writes, and failure cleanup. Both original reproductions
+failed before the clone-path fix; the candidate passes **194/194** tests.
+All microbenchmarks ran successfully; no controlled performance comparison is
+claimed. Library/test/benchmark and system/vendor image builds passed with
+`-j8`. The source changes remain local and uncommitted.
+
+The library is deployed as an overlay, SHA-256
+`ef6979c8acb50b898ff7dd3027e9d1e5456181e487fccd5639a9549f37234ea1`.
+Backup: `/var/lib/waydroid/deploy-backups/20260916-instagram-fork-fix`.
+Four application startup rounds completed without retaining the stuck GPU
+child. A new GDB capture confirmed the same guest fork path reaches bionic
+clone and its child subsequently exits. The final untraced cold launch took
+17943 ms; the app stays foreground and the crash buffer is empty. Background
+startup load and a temporary Waydroid container freeze invalidate timing
+comparisons with the earlier diagnostic runs.
+
+Only Waydroid restarted; the host boot ID remained
+`9d147f15-2b8c-4097-9d2c-366bf83ea015`. Application data and shader caches
+were preserved. The rebuilt image pair has not replaced the September 16
+RenderScript images on the device. To roll back this library-only deployment,
+stop the session/container, verify the exact backup's `overlay-state=absent`,
+preserve and remove the new Berberis overlay, then restart as the desktop user.
+The image library should again hash to
+`8265edf0a3149872d02eef3256489f36b98b60165037a889104059ffa9c6033b`.
+Local evidence, artifact hashes and limitations:
+`logs/instagram-fork-fix-20260916/REPORT.md`.
+
+## 2026-09-16 ARM64 RenderScript JNI packaged and deployed
+
+The LoongArch64 product now explicitly selects `librs_jni.native_bridge` and
+allows `system/lib64/arm64/librs_jni.so` in its artifact paths. The disabled
+native `librs_jni` selection did not pull in that independently named guest
+module. Earlier manual module builds populated the output directory and
+`installed-files.txt`, but the system-image input file list excluded the library.
+The earlier statement that the product already included it was incorrect.
+
+`m -j8 librs_jni.native_bridge` and `m -j8 systemimage vendorimage` passed.
+Extracting the actual rebuilt EROFS image confirms the library is AArch64 and
+matches the previously validated overlay byte for byte (SHA-256
+`a448293d3148b56c6923b8090717d6b4f537d76ad75b756f739c807a8ab2b218`).
+All ten direct dependencies are present as AArch64 libraries. The unsupported
+native JNI variant remains absent, and `config.disable_renderscript=1` remains
+set. EROFS and read-only vendor filesystem checks passed. Berberis remains
+`8265edf0a3149872d02eef3256489f36b98b60165037a889104059ffa9c6033b`.
+
+| Rebuilt artifact | SHA-256 |
+| --- | --- |
+| system.img | `3f284813456f54c481238791a04fca1a61142d65d0da949ce953b6c5165cdc3b` |
+| vendor.img | `2ce85d34dc1f5dec2079190cada7dd7c5b6b072b38fcab4024c48b25a5783d00` |
+
+The rebuilt pair was subsequently **deployed on September 16** at the user's
+request. Both images and the former RenderScript overlay were backed up in
+`/var/lib/waydroid/deploy-backups/20260916-195740-renderscript-images`.
+Fresh upper/work directories now contain no supplemental file overrides.
+Compared with the September 14 system image, the only added regular file is
+the ARM64 JNI library; the other modified regular files are build properties
+and the license notice. No existing regular file was removed.
+
+Android reaches `sys.boot_completed=1`, build incremental `1789559296`, with
+ADB authenticated using the existing key. All **190/190** Berberis correctness
+tests pass. The existing ARM64 `com.example.rsnb` test app displays
+`RenderScript.create: PASS`, confirmed through both a screenshot and its UI
+hierarchy. Its process maps the image's `librs_jni.so`, `libRSDriver.so` and
+`libRSCpuRef.so`; no JNI library override remains. The test covers context
+creation, finish and destruction, not all RenderScript compute or graphics APIs.
+
+The post-test crash buffer is empty. Host boot ID remained
+`f467261d-9c56-42ce-bc7d-d286758da9b3`; only Waydroid restarted. Both games
+remain installed, user data and shader caches were preserved, and Helper's
+host installation was not changed. The probe was stopped and the launcher
+restored after verification. The source change remains local and uncommitted.
+
+For rollback, stop the desktop session and container, preserve the current
+image/overlay state, and restore both images and the upper/work directories
+from the exact backup above, then start the desktop user's session. Do not
+clear Android data. Packaging evidence is in
+`logs/renderscript-packaging-20260916/`; deployment, runtime checks and the
+PASS captures are in `logs/renderscript-deploy-20260916/`. See also the
+[build guidance](BUILDING.md#development-branch-renderscript-note).
+
+## 2026-09-14 full image pair deployed
+
+Replaced both Waydroid images with the accepted September 13 build. Android
+reached `sys.boot_completed=1`; all 190 Berberis correctness tests passed and
+the post-boot crash buffer was empty. The latest JIT, ART, framework, launcher
+and Genshin graphics profile now come directly from the images, with matching
+hashes. Only the ARM64 RenderScript JNI supplement remains in the writable
+overlay because it is not yet packaged in system.img. Game data, shader caches
+and the host Helper installation were preserved. The user also confirmed the
+Helper coordinate fix works before requesting this deployment.
+
+The old image pair and complete overlay state are backed up in
+`/var/lib/waydroid/deploy-backups/20260914-215615-full-images`.
+See [artifacts, checks, limitations and rollback](FULL_IMAGES_20260914.md).
+
+## 2026-09-13 stack and memory JIT optimization deployed
+
+The new candidate removes obsolete branches to the next instruction at 16
+memory-emitter sites and consumes cached SP directly for non-flag-setting
+ADD/SUB immediates. It keeps the existing region-local register cache,
+write-through state model and baseline runtime entry/exit code.
+
+The device passed **190/190** correctness tests, including 1680 new SP-immediate
+boundary executions. A same-harness, five-pair comparison across **23 scenarios**
+passed the unchanged 3% latency/size gate: fixed-offset memory −25.58%, stack
+reads −25.46%, stack writeback −17.88%, and SP region chains −6.35% in median
+execution time. System/vendor images built successfully. These are synthetic
+results; actual game-loading improvement remains unmeasured.
+
+Library `8265edf0a3149872d02eef3256489f36b98b60165037a889104059ffa9c6033b`
+is now deployed through the system library overlay. Waydroid restarted and booted
+successfully; the host stayed in the same boot. All 190 tests passed again, and
+the fresh game process mapped the exact new library with active JIT compilation,
+Unity and IL2CPP loaded, and an empty crash buffer. The previous `c2183d42…`
+library is retained in
+`/var/lib/waydroid/deploy-backups/20260913-195656-jit-stack-memory`.
+Images, game data and shader caches were not changed. Larger SP-residency and
+runtime-exit experiments failed performance checks and were withdrawn. See
+[changes, exact artifacts, deployment and rollback](BERBERIS_STACK_MEMORY.md).
 
 ## 2026-09-13 development source committed
 

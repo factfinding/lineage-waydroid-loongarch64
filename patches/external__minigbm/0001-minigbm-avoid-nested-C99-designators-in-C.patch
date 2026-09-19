@@ -1,7 +1,7 @@
-From 3a3f9d2c94c47ae8a962e479dbe469f160a9355c Mon Sep 17 00:00:00 2001
+From 9f2c38a471fc56aed9ba448966f539bb1027a1c2 Mon Sep 17 00:00:00 2001
 From: noctis <970308389@qq.com>
 Date: Tue, 4 Aug 2026 01:35:45 +0800
-Subject: [PATCH] minigbm: avoid nested C99 designators in C++
+Subject: [PATCH 1/2] minigbm: avoid nested C99 designators in C++
 
 ---
  gbm_mesa_driver/gbm_mesa_wrapper.cpp | 34 +++++++++++++---------------

@@ -1,0 +1,135 @@
+From fd89fd7619a606c355627a9552c8eb61182cad87 Mon Sep 17 00:00:00 2001
+From: noctis <970308389@qq.com>
+Date: Sat, 19 Sep 2026 10:35:23 +0800
+Subject: [PATCH] aac: saturate conjugated spatial phase coefficients
+
+Avoid signed negation overflow when a spatial sine coefficient is INT_MIN.
+Retain sanitizer checks and add phase boundary regression coverage.
+
+Validation: spatial phase tests and native stereo xHE-AAC playback passed;
+see the integration runtime report for sample coverage.
+
+Change-Id: Ic2a1ea212e79094cfa3ead8cde8c6945b02409ec
+---
+ TEST_MAPPING                            |  7 ++++
+ libSACdec/src/sac_process.cpp           | 12 +++++-
+ tests/SpatialPhase/Android.bp           |  9 +++++
+ tests/SpatialPhase/SpatialPhaseTest.cpp | 49 +++++++++++++++++++++++++
+ 4 files changed, 75 insertions(+), 2 deletions(-)
+ create mode 100644 TEST_MAPPING
+ create mode 100644 tests/SpatialPhase/Android.bp
+ create mode 100644 tests/SpatialPhase/SpatialPhaseTest.cpp
+
+diff --git a/TEST_MAPPING b/TEST_MAPPING
+new file mode 100644
+index 0000000..7350cae
+--- /dev/null
++++ b/TEST_MAPPING
+@@ -0,0 +1,7 @@
++{
++  "presubmit": [
++    {
++      "name": "aac_spatial_phase_test"
++    }
++  ]
++}
+diff --git a/libSACdec/src/sac_process.cpp b/libSACdec/src/sac_process.cpp
+index 33a1647..347aae8 100644
+--- a/libSACdec/src/sac_process.cpp
++++ b/libSACdec/src/sac_process.cpp
+@@ -1047,15 +1047,23 @@ void SpatialDecApplyPhase(spatialDec *self, FIXP_SGL alpha__FDK,
+       *Dry_real1++ = out_re;
+       *Dry_imag1++ = out_im;
+     } else {
++      /* A saturated sine can be -1 (MINVAL_DBL). Its conjugate +1
++         must saturate to MAXVAL_DBL instead of overflowing on negation. */
++      const FIXP_DBL leftImag = ppb[4 * pb + 1] == (FIXP_DBL)MINVAL_DBL
++                                   ? (FIXP_DBL)MAXVAL_DBL
++                                   : -ppb[4 * pb + 1];
++      const FIXP_DBL rightImag = ppb[4 * pb + 3] == (FIXP_DBL)MINVAL_DBL
++                                    ? (FIXP_DBL)MAXVAL_DBL
++                                    : -ppb[4 * pb + 3];
+       cplxMultDiv2(&out_re, &out_im, *Dry_real0, *Dry_imag0, ppb[4 * pb + 0],
+-                   -ppb[4 * pb + 1]);
++                   leftImag);
+       out_re <<= PHASE_SCALE - 1;
+       out_im <<= PHASE_SCALE - 1;
+       *Dry_real0++ = out_re;
+       *Dry_imag0++ = out_im;
+ 
+       cplxMultDiv2(&out_re, &out_im, *Dry_real1, *Dry_imag1, ppb[4 * pb + 2],
+-                   -ppb[4 * pb + 3]);
++                   rightImag);
+       out_re <<= PHASE_SCALE - 1;
+       out_im <<= PHASE_SCALE - 1;
+       *Dry_real1++ = out_re;
+diff --git a/tests/SpatialPhase/Android.bp b/tests/SpatialPhase/Android.bp
+new file mode 100644
+index 0000000..ecce997
+--- /dev/null
++++ b/tests/SpatialPhase/Android.bp
+@@ -0,0 +1,9 @@
++cc_test {
++    name: "aac_spatial_phase_test",
++    host_supported: true,
++    srcs: ["SpatialPhaseTest.cpp"],
++    include_dirs: ["external/aac/libSACdec/src"],
++    static_libs: ["libFraunhoferAAC"],
++    shared_libs: ["liblog"],
++    test_suites: ["device-tests"],
++}
+diff --git a/tests/SpatialPhase/SpatialPhaseTest.cpp b/tests/SpatialPhase/SpatialPhaseTest.cpp
+new file mode 100644
+index 0000000..cdb6290
+--- /dev/null
++++ b/tests/SpatialPhase/SpatialPhaseTest.cpp
+@@ -0,0 +1,49 @@
++#include <cmath>
++#include <memory>
++
++#include <gtest/gtest.h>
++
++#include "sac_process.h"
++#include "sac_rom.h"
++
++// Exercise the complete phase rotation, including sine = -1 and both
++// conjugated hybrid bands. Run with the library's integer sanitizers enabled.
++TEST(SpatialPhase, FullCircleAndNegativeUnity) {
++  constexpr double kPi = 3.14159265358979323846;
++  constexpr double kScale = 2147483648.0;
++  const SCHAR kernels[4] = {0, 0, 0, 0};
++  for (int step = 0; step < 64; ++step) {
++    auto state = std::make_unique<spatialDec>();
++    FIXP_DBL real[2][4];
++    FIXP_DBL imag[2][4];
++    FIXP_DBL* realRows[] = {real[0], real[1]};
++    FIXP_DBL* imagRows[] = {imag[0], imag[1]};
++    state->numParameterBands = 1;
++    state->hybridBands = 4;
++    state->kernels = kernels;
++    state->hybOutputRealDry__FDK = realRows;
++    state->hybOutputImagDry__FDK = imagRows;
++    double angles[2] = {step * kPi / 32, ((step + 16) % 64) * kPi / 32};
++    state->PhaseLeft__FDK[0] = state->PhasePrevLeft__FDK[0] =
++        static_cast<FIXP_DBL>(angles[0] * kScale / (1 << IPD_SCALE));
++    state->PhaseRight__FDK[0] = state->PhasePrevRight__FDK[0] =
++        static_cast<FIXP_DBL>(angles[1] * kScale / (1 << IPD_SCALE));
++    for (int ch = 0; ch < 2; ++ch) {
++      for (int band = 0; band < 4; ++band) {
++        real[ch][band] = static_cast<FIXP_DBL>(kScale / 8);
++        imag[ch][band] = static_cast<FIXP_DBL>(kScale / 16);
++      }
++    }
++    SpatialDecApplyPhase(state.get(), 0, 0);
++    for (int ch = 0; ch < 2; ++ch) {
++      for (int band = 0; band < 4; ++band) {
++        SCOPED_TRACE(::testing::Message() << step << "," << ch << "," << band);
++        double angle = (band == 0 || band == 2) ? -angles[ch] : angles[ch];
++        EXPECT_NEAR(real[ch][band] / kScale,
++                    std::cos(angle) / 8 - std::sin(angle) / 16, 0.0001);
++        EXPECT_NEAR(imag[ch][band] / kScale,
++                    std::sin(angle) / 8 + std::cos(angle) / 16, 0.0001);
++      }
++    }
++  }
++}

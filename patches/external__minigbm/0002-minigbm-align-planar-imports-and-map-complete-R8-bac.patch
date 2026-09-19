@@ -1,0 +1,336 @@
+From 722be37992483615bb04a497b9446ac0a2120575 Mon Sep 17 00:00:00 2001
+From: noctis <970308389@qq.com>
+Date: Sat, 19 Sep 2026 10:35:23 +0800
+Subject: [PATCH 2/2] minigbm: align planar imports and map complete R8 backing
+
+Honor pre-Navi amdgpu linear pitch alignment for spoofed YUV buffers,
+including chroma strides. Map the same two-dimensional R8 backing used
+by allocation/import so updates reach every row. Add EGL import tests.
+
+Validation: YUV import and native video playback controls passed on RX480.
+
+Change-Id: I46a6521ea5b9aa8963e5dc63fb0d6db8bde8ebbd
+---
+ gbm_mesa_driver/gbm_mesa_internals.cpp |  43 +++++-
+ tests/yuv-import/Android.bp            |   7 +
+ tests/yuv-import/README.md             |  15 ++
+ tests/yuv-import/yuv_import_test.cpp   | 192 +++++++++++++++++++++++++
+ 4 files changed, 256 insertions(+), 1 deletion(-)
+ create mode 100644 tests/yuv-import/Android.bp
+ create mode 100644 tests/yuv-import/README.md
+ create mode 100644 tests/yuv-import/yuv_import_test.cpp
+
+diff --git a/gbm_mesa_driver/gbm_mesa_internals.cpp b/gbm_mesa_driver/gbm_mesa_internals.cpp
+index 649bca7..0b7af54 100644
+--- a/gbm_mesa_driver/gbm_mesa_internals.cpp
++++ b/gbm_mesa_driver/gbm_mesa_internals.cpp
+@@ -27,6 +27,7 @@ extern "C" {
+ #include "util.h"
+ #include <algorithm>
+ #include <array>
++#include <amdgpu_drm.h>
+ #include <assert.h>
+ #include <cutils/properties.h>
+ #include <dlfcn.h>
+@@ -106,6 +107,7 @@ struct GbmMesaDriver {
+ 	struct gbm_device *gbm_dev = nullptr;
+ 	void *dl_handle = nullptr;
+ 
++	uint32_t planar_stride_alignment = 1;
+ 	UniqueFd gbm_node_fd;
+ 	UniqueFd gpu_node_fd;
+ };
+@@ -199,6 +201,27 @@ static std::shared_ptr<GbmMesaDriver> gbm_mesa_get_or_init_driver(struct driver
+ 			return nullptr;
+ 		}
+ 
++		/* Spoofed planar allocations must also satisfy the GPU's import
++		 * alignment. Match the native amdgpu backend on GPUs which allow
++		 * a custom linear pitch. Leave Navi and newer GPUs, which have
++		 * additional pitch restrictions, unchanged here.
++		 */
++		drmVersionPtr version = drmGetVersion(gbm_mesa_drv->gbm_node_fd.Get());
++		if (version && strcmp(version->name, "amdgpu") == 0) {
++			struct drm_amdgpu_info_device info = {};
++			struct drm_amdgpu_info query = {};
++			query.return_pointer = reinterpret_cast<uintptr_t>(&info);
++			query.return_size = sizeof(info);
++			query.query = AMDGPU_INFO_DEV_INFO;
++			if (drmCommandWriteRead(gbm_mesa_drv->gbm_node_fd.Get(), DRM_AMDGPU_INFO,
++						&query, sizeof(query)) == 0 &&
++			    info.family < AMDGPU_FAMILY_NV) {
++				gbm_mesa_drv->planar_stride_alignment = 256;
++			}
++		}
++		if (version)
++			drmFreeVersion(version);
++
+ #ifndef EMBEDDED_GBM_WRAPPER
+ 		gbm_mesa_drv->dl_handle = dlopen(GBM_WRAPPER_NAME, RTLD_NOW);
+ 		if (gbm_mesa_drv->dl_handle == nullptr) {
+@@ -354,7 +377,16 @@ int gbm_mesa_bo_create2(struct bo *bo, uint32_t width, uint32_t height, uint32_t
+ 
+ 	if (alloc_args.drm_format == 0) {
+ 		/* Always use linear for spoofed format allocations. */
+-		drv_bo_from_format(bo, alloc_args.width, 1, alloc_args.height, format);
++		uint32_t stride_align = drv->planar_stride_alignment;
++		uint32_t y_align = stride_align;
++		if (stride_align > 1 &&
++		    (format == DRM_FORMAT_YVU420 || format == DRM_FORMAT_YVU420_ANDROID))
++			y_align *= 2;
++		/* YV12's chroma stride is half the luma stride (rounded to 16).
++		 * Align both planes before computing offsets and allocation size.
++		 */
++		drv_bo_from_format(bo, ALIGN(alloc_args.width, y_align), stride_align,
++				   alloc_args.height, format);
+ 		bo_layout_ready = true;
+ 		bo->meta.total_size = ALIGN(bo->meta.total_size, size_align);
+ 		alloc_args.drm_format = DRM_FORMAT_R8;
+@@ -527,6 +559,15 @@ void *gbm_mesa_bo_map(struct bo *bo, struct vma *vma, uint32_t map_flags)
+ 	if (wr->get_gbm_format(s_format) == 0) {
+ 		s_width = bo->meta.total_size;
+ 		s_height = 1;
++		s_format = DRM_FORMAT_R8;
++	}
++
++	/* Match the 2D R8 backing used by allocation and import. Mapping it
++	 * as one oversized row can write only the first row back to the GPU.
++	 */
++	if (s_format == DRM_FORMAT_R8 && s_height == 1) {
++		s_height = DIV_ROUND_UP(s_width, 4096);
++		s_width = 4096;
+ 	}
+ 
+ 	wr->map(priv->gbm_bo, s_width, s_height, &buf, &vma->priv);
+diff --git a/tests/yuv-import/Android.bp b/tests/yuv-import/Android.bp
+new file mode 100644
+index 0000000..b4dd866
+--- /dev/null
++++ b/tests/yuv-import/Android.bp
+@@ -0,0 +1,7 @@
++cc_test {
++    name: "minigbm_yuv_import_tests",
++    srcs: ["yuv_import_test.cpp"],
++    shared_libs: ["libEGL", "libGLESv2", "libnativewindow"],
++    cflags: ["-Wall", "-Werror"],
++    test_suites: ["device-tests"],
++}
+diff --git a/tests/yuv-import/README.md b/tests/yuv-import/README.md
+new file mode 100644
+index 0000000..8d13583
+--- /dev/null
++++ b/tests/yuv-import/README.md
+@@ -0,0 +1,15 @@
++# Android YUV import regression
++
++Build `minigbm_yuv_import_tests`, push it to the device, and run it inside Android.
++The test requires a working Android EGL/gralloc stack and a GPU; it is not a
++host-only or generic presubmit test.
++
++The cases allocate RGB and CPU-writable/GPU-sampled YUV buffers, import them into
++EGL, and bind an external texture. The YUV cases additionally fill the planes
++with a known red sample, draw the external texture and read back the color.
++Widths 720, 736 and 768 exercise chroma-stride alignment; 1024 is the aligned
++control. The flexible YUV case covers the corresponding software-codec path.
++
++On the RX 480 using gbm_mesa, the original allocation imported RGBA/1024-wide
++YV12 successfully, but failed the other four imports. This is independent of
++ARM64 translation and of the video decoder implementation.
+diff --git a/tests/yuv-import/yuv_import_test.cpp b/tests/yuv-import/yuv_import_test.cpp
+new file mode 100644
+index 0000000..04f4da2
+--- /dev/null
++++ b/tests/yuv-import/yuv_import_test.cpp
+@@ -0,0 +1,192 @@
++#include <EGL/egl.h>
++#include <EGL/eglext.h>
++#include <GLES2/gl2.h>
++#include <GLES2/gl2ext.h>
++#include <android/hardware_buffer.h>
++#include <cstring>
++#include <gtest/gtest.h>
++
++class YuvImport : public testing::Test
++{
++      protected:
++	EGLDisplay display = EGL_NO_DISPLAY;
++	EGLContext context = EGL_NO_CONTEXT;
++	EGLSurface surface = EGL_NO_SURFACE;
++	void SetUp() override
++	{
++		display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
++		ASSERT_NE(display, EGL_NO_DISPLAY);
++		ASSERT_TRUE(eglInitialize(display, nullptr, nullptr));
++		const EGLint attributes[] = { EGL_SURFACE_TYPE, EGL_PBUFFER_BIT,
++					      EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT, EGL_NONE };
++		EGLConfig config;
++		EGLint count;
++		ASSERT_TRUE(eglChooseConfig(display, attributes, &config, 1, &count));
++		ASSERT_EQ(count, 1);
++		const EGLint ca[] = { EGL_CONTEXT_CLIENT_VERSION, 2, EGL_NONE };
++		context = eglCreateContext(display, config, EGL_NO_CONTEXT, ca);
++		ASSERT_NE(context, EGL_NO_CONTEXT);
++		const EGLint sa[] = { EGL_WIDTH, 16, EGL_HEIGHT, 16, EGL_NONE };
++		surface = eglCreatePbufferSurface(display, config, sa);
++		ASSERT_NE(surface, EGL_NO_SURFACE);
++		ASSERT_TRUE(eglMakeCurrent(display, surface, surface, context));
++	}
++	void TearDown() override
++	{
++		eglMakeCurrent(display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
++		if (surface != EGL_NO_SURFACE)
++			eglDestroySurface(display, surface);
++		if (context != EGL_NO_CONTEXT)
++			eglDestroyContext(display, context);
++		if (display != EGL_NO_DISPLAY)
++			eglTerminate(display);
++	}
++	void check(uint32_t format, uint32_t width)
++	{
++		AHardwareBuffer_Desc desc{};
++		desc.width = width;
++		desc.height = 1280;
++		desc.layers = 1;
++		desc.format = format;
++		desc.usage = AHARDWAREBUFFER_USAGE_CPU_READ_OFTEN |
++			     AHARDWAREBUFFER_USAGE_CPU_WRITE_OFTEN |
++			     AHARDWAREBUFFER_USAGE_GPU_SAMPLED_IMAGE;
++		AHardwareBuffer *buffer = nullptr;
++		ASSERT_EQ(AHardwareBuffer_allocate(&desc, &buffer), 0);
++		AHardwareBuffer_describe(buffer, &desc);
++		printf("buffer format=%#x width=%u stride=%u\n", format, width, desc.stride);
++		if (format != AHARDWAREBUFFER_FORMAT_R8G8B8A8_UNORM) {
++			AHardwareBuffer_Planes planes{};
++			ASSERT_EQ(AHardwareBuffer_lockPlanes(buffer,
++							     AHARDWAREBUFFER_USAGE_CPU_WRITE_OFTEN,
++							     -1, nullptr, &planes),
++				  0);
++			ASSERT_EQ(planes.planeCount, 3u);
++			const uint8_t values[] = { 81, 90, 240 }; // Limited-range BT.601 red.
++			for (unsigned p = 0; p < 3; p++) {
++				unsigned rows = p == 0 ? desc.height : desc.height / 2;
++				unsigned columns = p == 0 ? desc.width : desc.width / 2;
++				for (unsigned y = 0; y < rows; y++) {
++					auto row = static_cast<uint8_t *>(planes.planes[p].data) +
++						   y * planes.planes[p].rowStride;
++					for (unsigned x = 0; x < columns; x++)
++						row[x * planes.planes[p].pixelStride] = values[p];
++				}
++			}
++			ASSERT_EQ(AHardwareBuffer_unlock(buffer, nullptr), 0);
++			ASSERT_EQ(AHardwareBuffer_lockPlanes(buffer,
++							     AHARDWAREBUFFER_USAGE_CPU_READ_OFTEN,
++							     -1, nullptr, &planes),
++				  0);
++			for (unsigned p = 0; p < 3; p++) {
++				unsigned y = p == 0 ? desc.height / 2 : desc.height / 4;
++				unsigned x = p == 0 ? desc.width / 2 : desc.width / 4;
++				auto address = static_cast<uint8_t *>(planes.planes[p].data) +
++					       y * planes.planes[p].rowStride +
++					       x * planes.planes[p].pixelStride;
++				EXPECT_EQ(*address, values[p]);
++			}
++			ASSERT_EQ(AHardwareBuffer_unlock(buffer, nullptr), 0);
++		}
++		auto getBuffer = reinterpret_cast<PFNEGLGETNATIVECLIENTBUFFERANDROIDPROC>(
++		    eglGetProcAddress("eglGetNativeClientBufferANDROID"));
++		auto create = reinterpret_cast<PFNEGLCREATEIMAGEKHRPROC>(
++		    eglGetProcAddress("eglCreateImageKHR"));
++		auto destroy = reinterpret_cast<PFNEGLDESTROYIMAGEKHRPROC>(
++		    eglGetProcAddress("eglDestroyImageKHR"));
++		auto target = reinterpret_cast<PFNGLEGLIMAGETARGETTEXTURE2DOESPROC>(
++		    eglGetProcAddress("glEGLImageTargetTexture2DOES"));
++		ASSERT_NE(getBuffer, nullptr);
++		ASSERT_NE(create, nullptr);
++		ASSERT_NE(destroy, nullptr);
++		ASSERT_NE(target, nullptr);
++		const EGLint attributes[] = { EGL_IMAGE_PRESERVED_KHR, EGL_TRUE, EGL_NONE };
++		EGLImageKHR image = create(display, EGL_NO_CONTEXT, EGL_NATIVE_BUFFER_ANDROID,
++					   getBuffer(buffer), attributes);
++		EXPECT_NE(image, EGL_NO_IMAGE_KHR) << "EGL error " << std::hex << eglGetError();
++		if (image != EGL_NO_IMAGE_KHR) {
++			GLuint texture;
++			glGenTextures(1, &texture);
++			glBindTexture(GL_TEXTURE_EXTERNAL_OES, texture);
++			target(GL_TEXTURE_EXTERNAL_OES, image);
++			EXPECT_EQ(glGetError(), static_cast<GLenum>(GL_NO_ERROR));
++			if (format != AHARDWAREBUFFER_FORMAT_R8G8B8A8_UNORM) {
++				glTexParameteri(GL_TEXTURE_EXTERNAL_OES, GL_TEXTURE_MIN_FILTER,
++						GL_NEAREST);
++				glTexParameteri(GL_TEXTURE_EXTERNAL_OES, GL_TEXTURE_MAG_FILTER,
++						GL_NEAREST);
++				glTexParameteri(GL_TEXTURE_EXTERNAL_OES, GL_TEXTURE_WRAP_S,
++						GL_CLAMP_TO_EDGE);
++				glTexParameteri(GL_TEXTURE_EXTERNAL_OES, GL_TEXTURE_WRAP_T,
++						GL_CLAMP_TO_EDGE);
++				const char *vs =
++				    "attribute vec2 p; void main(){gl_Position=vec4(p,0.,1.);}";
++				const char *fs =
++				    "#extension GL_OES_EGL_image_external : require\n"
++				    "precision mediump float; uniform samplerExternalOES s;"
++				    "void main(){gl_FragColor=texture2D(s,vec2(0.5));}";
++				GLuint v = glCreateShader(GL_VERTEX_SHADER),
++				       f = glCreateShader(GL_FRAGMENT_SHADER);
++				glShaderSource(v, 1, &vs, nullptr);
++				glCompileShader(v);
++				glShaderSource(f, 1, &fs, nullptr);
++				glCompileShader(f);
++				GLuint program = glCreateProgram();
++				glAttachShader(program, v);
++				glAttachShader(program, f);
++				glBindAttribLocation(program, 0, "p");
++				glLinkProgram(program);
++				GLint linked = 0;
++				glGetProgramiv(program, GL_LINK_STATUS, &linked);
++				EXPECT_EQ(linked, GL_TRUE);
++				glUseProgram(program);
++				glUniform1i(glGetUniformLocation(program, "s"), 0);
++				const GLfloat vertices[] = { -1, -1, 3, -1, -1, 3 };
++				glEnableVertexAttribArray(0);
++				glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, vertices);
++				glViewport(0, 0, 16, 16);
++				glDrawArrays(GL_TRIANGLES, 0, 3);
++				uint8_t pixel[4]{};
++				glReadPixels(8, 8, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, pixel);
++				EXPECT_EQ(glGetError(), static_cast<GLenum>(GL_NO_ERROR));
++				printf("sample rgba=%u,%u,%u,%u\n", pixel[0], pixel[1], pixel[2],
++				       pixel[3]);
++				EXPECT_GT(pixel[0], 180);
++				EXPECT_LT(pixel[1], 80);
++				EXPECT_LT(pixel[2], 80);
++				glDisableVertexAttribArray(0);
++				glUseProgram(0);
++				glDeleteProgram(program);
++				glDeleteShader(v);
++				glDeleteShader(f);
++			}
++			glDeleteTextures(1, &texture);
++			destroy(display, image);
++		}
++		AHardwareBuffer_release(buffer);
++	}
++};
++TEST_F(YuvImport, Rgba720)
++{
++	check(AHARDWAREBUFFER_FORMAT_R8G8B8A8_UNORM, 720);
++}
++TEST_F(YuvImport, FlexibleYuv720)
++{
++	check(AHARDWAREBUFFER_FORMAT_Y8Cb8Cr8_420, 720);
++}
++TEST_F(YuvImport, Yv12_720)
++{
++	check(0x32315659, 720);
++}
++TEST_F(YuvImport, Yv12_736)
++{
++	check(0x32315659, 736);
++}
++TEST_F(YuvImport, Yv12_768)
++{
++	check(0x32315659, 768);
++}
++TEST_F(YuvImport, Yv12_1024)
++{
++	check(0x32315659, 1024);
++}

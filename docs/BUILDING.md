@@ -89,7 +89,18 @@ The toolchain, standalone WebView, and image stages were clean-build verified fo
 ## Development-branch RenderScript note
 
 The current development branches build an ARM64 Native Bridge variant of
-`librs_jni.so` as part of the product. No LoongArch64 libbcc build is required:
+`librs_jni.so` as part of the product. No LoongArch64 libbcc build is required.
+
+The LoongArch64 product explicitly selects `librs_jni.native_bridge` in
+`frameworks/libs/binary_translation/enable_arm64_to_loongarch64.mk`. Selecting
+the disabled native `librs_jni` module through `handheld_system.mk` does not
+select this separately named guest module. A manually built library can remain
+in `out/target/product/.../system/` and appear in `installed-files.txt` while
+being excluded by the system image's input file list. The September 14 deployed
+images had that omission and required an overlay; the September 16 packaging
+fix adds both the guest product package and its allowed artifact path.
+
+Runtime behavior:
 
 - `config.disable_renderscript=1` intentionally keeps the unsupported native
   LoongArch64 runtime out of Zygote processes.
@@ -100,7 +111,11 @@ The current development branches build an ARM64 Native Bridge variant of
   library.
 
 A normal `systemimage` build includes the framework, Berberis and ARM64 guest
-JNI changes. After deployment, verify both the configuration and runtime path:
+JNI changes with that fix. Validate the image contents, not just the staging
+directory or installed-files report. The image must contain
+`/system/lib64/arm64/librs_jni.so` as an AArch64 ELF; its native LoongArch64
+counterpart remains disabled. After deployment, verify both the configuration
+and runtime path:
 
 ```bash
 getprop config.disable_renderscript
